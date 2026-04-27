@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pilot DJ'a - Karaoke</title>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #000000;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        /* GÓRNY PASEK ZAKŁADEK */
+        .top-bar { display: flex; justify-content: space-between; padding: 10px; background: #111; border-bottom: 1px solid #333; }
+        .top-btn { background: #222; color: #ccc; border: 1px solid #444; border-radius: 10px; padding: 15px 5px; font-size: 24px; flex: 1; margin: 0 4px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
+        .top-btn.active { background: #4CAF50; border-color: #4CAF50; }
+
+        /* ROZWIJANE PANELE */
+        .panel { background: #1a1a1a; padding: 15px; margin: 10px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: none; }
+
+        .status-display { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 10px; overflow: hidden; transition: all 0.3s ease; touch-action: pan-y; }
+        .mode-label { color: #bb86fc; font-size: 4vw; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 10px; }
+        .big-number { font-size: 35vw; font-weight: 900; line-height: 1; color: #4CAF50; margin: 0; text-shadow: 0 0 30px rgba(76, 175, 80, 0.4); }
+        .huge-title { font-size: 10vw; font-weight: bold; margin: 5px 0; color: #ffffff; line-height: 1.1; word-wrap: break-word; width: 100%; pointer-events: none; }
+        .label-small { color: #888; font-size: 3.5vw; text-transform: uppercase; margin-top: 10px; font-weight: bold; }
+        .next-song { font-size: 6vw; color: #03dac6; margin-top: 2px; font-weight: bold; pointer-events: none; }
+        .queue-item { font-size: 4.5vw; color: #777; margin-top: 2px; }
+
+        /* KONTROLKI */
+        .controls-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+        .btn { background: #333; border: none; color: white; padding: 20px 0; border-radius: 12px; font-size: 30px; display: flex; align-items: center; justify-content: center; transition: 0.1s; cursor: pointer; }
+        .btn-play { background: #455a64; font-size: 40px; }
+        .btn.pressed { background: #e53935 !important; transform: scale(0.95); }
+        .btn:disabled { opacity: 0.4; pointer-events: none; }
+        
+        /* LISTY I KARTY */
+        .clickable-item { background: #2c2c2c; margin-bottom: 8px; padding: 15px; border-radius: 10px; transition: background 0.2s, transform 0.1s; }
+        .clickable-item.interactive:active { transform: scale(0.98); background: #444; }
+        .order-title { font-size: 16px; font-weight: bold; line-height: 1.3; margin-bottom: 4px; }
+        .order-singer { color: #aaa; font-size: 13px; display: block; }
+        .badge { color: #fff; padding: 3px 8px; border-radius: 6px; font-size: 12px; margin-right: 8px; vertical-align: middle; font-weight: bold; }
+        .badge-yt { background: #c62828; }
+        .badge-ising { background: #0288d1; }
+        .tiny-btn { background:#444; border:none; color:white; padding:6px; border-radius:4px; font-size: 14px; cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        .tiny-btn:disabled { opacity: 0.2; pointer-events: none; }
+        .tab-btn { background:#444; border:none; color:white; padding:8px 12px; border-radius:6px; font-size: 18px; cursor: pointer; }
+        .tab-btn:disabled { opacity: 0.2; pointer-events: none; }
+    </style>
+</head>
+
+<body>
+
+    <div id="topBar" class="top-bar" style="display: none;">
+        <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
+        <button id="btnTabSearch" class="top-btn" onclick="toggleTab('search')" title="Wyszukiwarka">🔍</button>
+        <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
+        <button id="btnTabControls" class="top-btn" onclick="toggleTab('controls')" title="Sterowanie">🎛️</button>
+    </div>
+
+    <div id="tabOrders" class="panel" style="max-height: 60vh; overflow-y: auto;">
+        <div id="ordersListRemote" style="text-align: left;">
+            <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Uruchamianie połączenia...</div>
+        </div>
+    </div>
+
+    <div id="tabSearch" class="panel">
+        <input type="text" id="searchInputRemote" placeholder="Szukaj w bazie..." style="width: 100%; padding: 15px; font-size: 18px; border-radius: 8px; border: none; box-sizing: border-box; margin-bottom: 5px;" oninput="handleLocalSearch(this.value)">
+        <div id="searchStatus" style="font-size: 13px; color: #888; margin-bottom: 15px; text-align: center;">⏳ Pobieranie bazy utworów...</div>
+        <ul id="searchListRemote" style="list-style: none; padding: 0; margin: 0; max-height: 50vh; overflow-y: auto;"></ul>
+    </div>
+
+    <div id="tabList" class="panel" style="max-height: 60vh; overflow-y: auto;">
+        <div id="openTabsContainer" style="text-align: left;">
+            <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Oczekiwanie na dane z przeglądarki...</div>
+        </div>
+    </div>
+
+    <div id="tabControls" class="panel">
+        <div class="controls-grid">
+            <button id="btnPrev" class="btn" onclick="sendCmd('prev')">⏮️</button>
+            <button id="btnPlay" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
+            <button id="btnNext" class="btn" onclick="sendCmd('next')">⏭️</button>
+        </div>
+        <div class="controls-grid" style="grid-template-columns: 1fr;">
+            <button class="btn" style="font-size: 18px; padding: 15px; background: #b71c1c;" onclick="sendCmd('close')">❌ Zamknij Aktywną Kartę</button>
+        </div>
+        <div style="background: #222; border-radius: 12px; padding: 15px; margin-top: 10px; display: flex; align-items: center; justify-content: center;">
+            <label style="font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 15px;">
+                <input type="checkbox" id="autoPlayToggle" style="transform: scale(1.8);" onchange="sendCmd('toggle_autoplay', this.checked)">
+                Tryb AutoPlay
+            </label>
+        </div>
+    </div>
+
+    <div class="status-display" id="mainStatusScreen">
+        <div id="uiMode" class="mode-label">Inicjalizacja...</div>
+        <div id="uiMainDisplay" class="big-number">-</div>
+        <div id="uiSubDisplay" class="huge-title">Czekam na dane</div>
+
+        <div id="nextKaraokeContainer">
+            <div class="label-small">Następnie:</div>
+            <div id="uiNext" class="next-song">-</div>
+            <div class="label-small">W kolejce:</div>
+            <div id="uiQueue" style="margin-top:5px;"></div>
+        </div>
+
+        <div id="nextKonkursContainer" style="margin-top: 20px; border-top: 1px solid #333; width: 100%; padding-top: 10px;">
+            <div class="label-small">Następny w kolejce:</div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px;">
+                <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
+                <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1;">-</span>
+            </div>
+            
+            <div id="konkursControls" style="display: none; width: 100%; margin-top: 30px;">
+                <div class="controls-grid" style="margin: 0;">
+                    <button id="btnPrevK" class="btn" style="padding: 10px 0;" onclick="sendCmd('prev')">⏮️</button>
+                    <button id="btnPlayK" class="btn btn-play" style="padding: 10px 0;" onclick="sendCmd('play')">▶️</button>
+                    <button id="btnNextK" class="btn" style="padding: 10px 0;" onclick="sendCmd('next')">⏭️</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =====================================
+        // WKLEJ TUTAJ SWÓJ URL Z APPS SCRIPT!
+        // =====================================
+        const APPS_SCRIPT_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzEyimmaojILmadkGvOoGEX0VsSxzucNWAwencvaYxhr_EdhjG1N2Vs0G2q6OZQkLEstw/exec';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7Eam7DIBhHG05gBTNGWuFLs2W8eLfqUo",
+            authDomain: "indeksowe-karaoke.firebaseapp.com",
+            databaseURL: "https://indeksowe-karaoke-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "indeksowe-karaoke",
+            storageBucket: "indeksowe-karaoke.firebasestorage.app",
+            messagingSenderId: "456394044590",
+            appId: "1:456394044590:web:1978e917b7674e7bd1293f"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let myPin = localStorage.getItem('dj_pin') || prompt("🔒 Podaj PIN DJ-a:");
+        if (myPin) localStorage.setItem('dj_pin', myPin);
+
+        let lastCmdTs = 0;
+        let unlockTimeout = null;
+        let isPlaying = false; 
+        let waitingForSongChange = false;
+        let lastSongName = "";
+        let currentModeInternal = "karaoke";
+        
+        let localBaza = []; 
+
+        const uiMode = document.getElementById('uiMode');
+        const uiMain = document.getElementById('uiMainDisplay');
+        const uiSub = document.getElementById('uiSubDisplay');
+        const uiNext = document.getElementById('uiNext');
+        const uiQueue = document.getElementById('uiQueue');
+        const nextKaraokeContainer = document.getElementById('nextKaraokeContainer');
+        const nextKonkursContainer = document.getElementById('nextKonkursContainer');
+        const topBar = document.getElementById('topBar');
+        const autoPlayToggle = document.getElementById('autoPlayToggle');
+        const konkursControls = document.getElementById('konkursControls');
+
+        // ==== LOGIKA ZAKŁADEK ====
+        function toggleTab(tabName) {
+            const tabs = ['orders', 'search', 'list', 'controls'];
+            tabs.forEach(t => {
+                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const btn = document.getElementById('btnTab' + t.charAt(0).toUpperCase() + t.slice(1));
+                if (t === tabName) {
+                    const isVisible = el.style.display === 'block';
+                    el.style.display = isVisible ? 'none' : 'block';
+                    if(btn) btn.classList.toggle('active', !isVisible);
+                } else {
+                    if(el) el.style.display = 'none';
+                    if(btn) btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ==== GESTY SWIPE (Zmiana trybów) ====
+        const statusScreen = document.getElementById('mainStatusScreen');
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const availableModes = ['karaoke', 'konkurs', 'loteria'];
+
+        statusScreen.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        statusScreen.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 80; 
+            let currentIndex = availableModes.indexOf(currentModeInternal);
+            if (currentIndex === -1) currentIndex = 0;
+
+            if (touchEndX < touchStartX - threshold) {
+                let nextMode = availableModes[(currentIndex + 1) % availableModes.length];
+                sendCmd('set_mode', nextMode);
+                toggleTab(''); // Chowa menu na przeciągnięcie
+            }
+            if (touchEndX > touchStartX + threshold) {
+                let prevMode = availableModes[(currentIndex - 1 + availableModes.length) % availableModes.length];
+                sendCmd('set_mode', prevMode);
+                toggleTab(''); // Chowa menu na przeciągnięcie
+            }
+        }
+
+        // ==== AUTOMATYCZNE POBIERANIE DANYCH ====
+        async function fetchBackgroundData() {
+            if (APPS_SCRIPT_PROXY_URL.includes('Wklej_Tutaj')) return;
+            try {
+                const res = await fetch(APPS_SCRIPT_PROXY_URL);
+                const gist = await res.json();
+                if (gist.error) throw new Error(gist.error);
+
+                if (gist.files['baza.json']) {
+                    localBaza = JSON.parse(gist.files['baza.json'].content);
+                    document.getElementById('searchStatus').textContent = `✅ Baza załadowana (${localBaza.length} utworów)`;
+                }
+
+                if (gist.files['zamowienia.json']) {
+                    const data = JSON.parse(gist.files['zamowienia.json'].content);
+                    const now = Date.now();
+                    const eightHoursInMs = 8 * 60 * 60 * 1000;
+                    
+                    let uniqueOrders = {};
+                    data.forEach(o => {
+                        if ((now - (o.id || o.timestamp)) <= eightHoursInMs && !o.zagrane) {
+                            let key = o.tytul.toLowerCase().trim();
+                            if(!uniqueOrders[key]) uniqueOrders[key] = o;
+                        }
+                    });
+                    
+                    const list = document.getElementById('ordersListRemote');
+                    list.innerHTML = '';
+                    let orderCount = 0;
+                    
+                    Object.values(uniqueOrders).forEach(o => {
+                        orderCount++;
+                        const card = document.createElement('div');
+                        card.className = 'clickable-item interactive';
+                        card.innerHTML = `<div class="order-title">${o.tytul}</div><span class="order-singer">🎤 ${o.imie || 'Wybór własny'}</span>`;
+                        card.onclick = () => sendPlayOrder(card, o.tytul);
+                        list.appendChild(card);
+                    });
+                    
+                    if(orderCount === 0) list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">📭 Brak niezrealizowanych zamówień.</div>';
+                }
+            } catch(e) {}
+        }
+
+        fetchBackgroundData();
+        setInterval(fetchBackgroundData, 10000);
+
+        function handleLocalSearch(query) {
+            const list = document.getElementById('searchListRemote');
+            list.innerHTML = '';
+            query = query.toLowerCase().trim();
+            if (query.length < 2) return;
+
+            const results = localBaza.filter(s => s.title.toLowerCase().includes(query)).slice(0, 15);
+            if(results.length === 0) {
+                list.innerHTML = '<li style="color:#aaa; padding: 10px 0; text-align:center;">Brak wyników w bazie.</li>';
+                return;
+            }
+            results.forEach(song => {
+                const li = document.createElement('li');
+                li.className = 'clickable-item interactive';
+                li.style.cssText = 'font-size: 15px; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;';
+                const isIsing = song.url && song.url.includes('ising.pl');
+                const badgeClass = isIsing ? 'badge badge-ising' : 'badge badge-yt';
+                li.innerHTML = `<span class="${badgeClass}">${isIsing ? 'iSing' : 'YT'}</span> <span style="vertical-align: middle;">${song.title}</span>`;
+                li.onclick = () => sendPlayOrder(li, song.title);
+                list.appendChild(li);
+            });
+        }
+
+        function sendPlayOrder(element, title) {
+            sendCmd('play_order', title);
+            const originalBg = element.style.background;
+            element.style.background = '#1b5e20';
+            setTimeout(() => { element.style.background = originalBg; }, 600);
+            setTimeout(() => { toggleTab(''); }, 700);
+        }
+
+      // ==== RENDEROWANIE OTWARTYCH KART ====
+        function renderOpenTabsList(tabs) {
+            const container = document.getElementById('openTabsContainer');
+            if (!tabs || tabs.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Brak otwartych kart z muzyką.</div>';
+                return;
+            }
+            
+            let html = '';
+            tabs.forEach((t, i) => {
+                html += `
+                <div style="background: #2c2c2c; margin-bottom: 6px; padding: 8px; border-radius: 8px; display:flex; align-items:center; gap: 10px; cursor: default;">
+                    <div style="display:flex; flex-direction:column; gap: 3px;">
+                        <button class="tiny-btn" onclick="sendCmd('move_tab_top', ${t.id})" ${i === 0 ? 'disabled' : ''} title="Na samą górę">⏫</button>
+                        <button class="tiny-btn" onclick="sendCmd('move_tab', {id: ${t.id}, dir: -1})" ${i === 0 ? 'disabled' : ''} title="Wyżej">▲</button>
+                        <button class="tiny-btn" onclick="sendCmd('move_tab', {id: ${t.id}, dir: 1})" ${i === tabs.length-1 ? 'disabled' : ''} title="Niżej">▼</button>
+                    </div>
+                    <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; font-weight:bold; line-height: 1.2;">
+                        ${t.title}
+                    </div>
+                    <button style="background:#d32f2f; border:none; color:white; padding:10px 12px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="sendCmd('close_tab', ${t.id})">✖</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // ==== ODBIERANIE DANYCH Z ROZSZERZENIA PC ====
+        db.ref('remote_status').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            // Zabezpieczenie przed zachodzeniem paneli przy zmianie trybu z zewnątrz
+            if (data.mode && currentModeInternal !== data.mode) {
+                currentModeInternal = data.mode;
+                toggleTab('');
+            }
+
+            const newTitle = data.currentName || "Brak utworu";
+
+            if (data.hasOwnProperty('autoPlay')) autoPlayToggle.checked = data.autoPlay;
+            if (data.hasOwnProperty('openTabs')) renderOpenTabsList(data.openTabs);
+
+            if (waitingForSongChange) {
+                if (newTitle !== lastSongName) {
+                    waitingForSongChange = false;
+                    unlockButtons();
+                }
+            } else if (data.lastAckTs && data.lastAckTs === lastCmdTs) {
+                unlockButtons();
+            }
+
+            uiMode.textContent = data.mode ? `TRYB: ${data.mode.toUpperCase()}` : "";
+
+            if (data.mode === 'karaoke') {
+                topBar.style.display = 'flex'; 
+                uiMain.style.display = 'none';
+                uiSub.textContent = newTitle;
+                uiSub.style.fontSize = '12vw';
+                nextKaraokeContainer.style.display = 'block';
+                nextKonkursContainer.style.display = 'none';
+                konkursControls.style.display = 'none';
+                uiNext.textContent = data.nextName || "-";
+
+                uiQueue.innerHTML = '';
+                if (data.queueList) {
+                    data.queueList.forEach(song => {
+                        const div = document.createElement('div');
+                        div.className = 'queue-item';
+                        div.textContent = song;
+                        uiQueue.appendChild(div);
+                    });
+                }
+            } 
+            else if (data.mode === 'konkurs') {
+                topBar.style.display = 'none'; 
+                uiMain.style.display = 'block';
+                uiMain.textContent = data.konkursIndex || "1";
+                uiSub.textContent = newTitle;
+                uiSub.style.fontSize = '8vw';
+                nextKaraokeContainer.style.display = 'none';
+                nextKonkursContainer.style.display = 'block';
+                konkursControls.style.display = 'block';
+                document.getElementById('uiNextIdx').textContent = data.nextKonkursIndex || "-";
+                document.getElementById('uiNextName').textContent = data.nextName || "-";
+            }
+            else if (data.mode === 'loteria') {
+                topBar.style.display = 'none'; 
+                uiMain.style.display = 'none';
+                uiSub.textContent = "LOTERIA";
+                uiSub.style.fontSize = '15vw';
+                nextKaraokeContainer.style.display = 'none';
+                nextKonkursContainer.style.display = 'none';
+                konkursControls.style.display = 'none';
+            }
+        });
+
+        // ==== GŁÓWNA WYSYŁKA KOMEND ====
+        function sendCmd(action, value = null) {
+            if (!myPin) { location.reload(); return; }
+
+            if (action === 'play') {
+                isPlaying = !isPlaying;
+                const btnPlay = document.getElementById('btnPlay');
+                const btnPlayK = document.getElementById('btnPlayK');
+                if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
+                if (btnPlayK) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
+            } 
+            // NOWE: Resetowanie stanu po zamknięciu karty lub zmianie piosenki
+            else if (action === 'close' || action === 'close_tab' || action === 'prev' || action === 'next' || action === 'play_order') {
+                isPlaying = false;
+                const btnPlay = document.getElementById('btnPlay');
+                const btnPlayK = document.getElementById('btnPlayK');
+                if (btnPlay) btnPlay.textContent = '▶️';
+                if (btnPlayK) btnPlayK.textContent = '▶️';
+            }
+
+            const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext', 'btnPrevK', 'btnPlayK', 'btnNextK'];
+            if(action === 'prev' || action === 'next' || action === 'play') {
+                buttonsIds.forEach(id => {
+                    const btn = document.getElementById(id);
+                    if (btn) btn.disabled = true;
+                });
+            }
+
+            let targetBtn1 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1));
+            let targetBtn2 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1) + 'K');
+            if (targetBtn1) targetBtn1.classList.add('pressed');
+            if (targetBtn2) targetBtn2.classList.add('pressed');
+
+            lastCmdTs = Date.now();
+
+            if (action === 'prev' || action === 'next' || action === 'play_order') {
+                waitingForSongChange = true;
+                lastSongName = uiSub.textContent; 
+                
+                clearTimeout(unlockTimeout);
+                unlockTimeout = setTimeout(() => {
+                    waitingForSongChange = false;
+                    unlockButtons();
+                }, 4000); 
+            } else {
+                waitingForSongChange = false;
+                clearTimeout(unlockTimeout);
+                unlockTimeout = setTimeout(unlockButtons, 1500);
+            }
+
+            db.ref('remote_cmd').set({ action: action, value: value, pin: myPin, ts: lastCmdTs })
+                .catch(e => { localStorage.removeItem('dj_pin'); location.reload(); });
+            
+            if (navigator.vibrate) navigator.vibrate(40);
+        }
+
+        function unlockButtons() {
+            ['btnPrev', 'btnPlay', 'btnNext', 'btnPrevK', 'btnPlayK', 'btnNextK'].forEach(id => {
+                let btn = document.getElementById(id);
+                if(btn) {
+                    if (id.includes('Play')) {
+                        btn.disabled = false;
+                        btn.classList.remove('pressed');
+                    } else {
+                        btn.disabled = isPlaying;
+                        btn.classList.remove('pressed');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
