@@ -332,7 +332,10 @@
             </div>
         </div>
     </div>
-
+    <button onclick="forceUnlockUI()" title="Odblokuj przyciski"
+        style="position: fixed; bottom: 15px; right: 15px; background: rgba(34, 34, 34, 0.7); border: 1px solid #444; color: #aaa; border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: bold; z-index: 9999; cursor: pointer;">
+        🔄 Reset UI
+    </button>
     <script>
         // =====================================
         // WKLEJ TUTAJ SWÓJ URL Z APPS SCRIPT!
@@ -547,17 +550,6 @@
 
             const newTitle = data.currentName || "Brak utworu";
 
-            // Jeśli przyszła nowa weryfikacja i pilot myśli, że gra, ale karta stoi - cofnij do Play
-            if (data.verifyTs && data.verifyTs > lastCmdTs) {
-                if (isPlaying && data.realPlayingStatus === false) {
-                    isPlaying = false;
-                    const btnPlay = document.getElementById('btnPlay');
-                    const btnPlayK = document.getElementById('btnPlayK');
-                    if (btnPlay) btnPlay.textContent = '▶️';
-                    if (btnPlayK) btnPlayK.textContent = '▶️';
-                }
-            }
-
             if (data.hasOwnProperty('autoPlay')) autoPlayToggle.checked = data.autoPlay;
             // Dodano OR [], aby uchronić listę przed zamrożeniem po usunięciu ostatniej karty
             renderOpenTabsList(data.openTabs || []);
@@ -625,13 +617,6 @@
                 const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
                 if (btnPlayK) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
-
-                // Jeśli pilot przeszedł w tryb pauzy (czyli utwór gra), sprawdzamy to po sekundzie
-                if (isPlaying) {
-                    setTimeout(() => {
-                        db.ref('remote_cmd').set({ action: 'verify_playback', value: null, pin: myPin, ts: Date.now() });
-                    }, 1000);
-                }
             }
             else if (action === 'close' || action === 'close_tab' || action === 'prev' || action === 'next' || action === 'play_order') {
                 isPlaying = false;
@@ -690,6 +675,19 @@
                     }
                 }
             });
+        }
+        function forceUnlockUI() {
+            waitingForSongChange = false;
+            isPlaying = false;
+
+            const btnPlay = document.getElementById('btnPlay');
+            const btnPlayK = document.getElementById('btnPlayK');
+            if (btnPlay) btnPlay.textContent = '▶️';
+            if (btnPlayK) btnPlayK.textContent = '▶️';
+
+            unlockButtons();
+
+            if (navigator.vibrate) navigator.vibrate(20);
         }
     </script>
 </body>
