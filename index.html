@@ -341,113 +341,83 @@
                 🪄 Pokaż na ekranie
             </button>
 
-        <div id="overlayModal"
-        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
-        <div
-            style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #9c27b0; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3); max-height: 90vh; overflow-y: auto;">
-            <h3 style="margin-top:0; color:#bb86fc; text-align:center;">Wyświetl na ekranie</h3>
-
+        <div id="overlayModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
+        <div style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #9c27b0; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3); max-height: 90vh; overflow-y: auto;">
+            
+            <h3 style="margin:0 0 15px 0; color:#bb86fc; text-align:center; text-transform: uppercase;">Wizja (Ekran)</h3>
+            
             <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Napis (dowolny tekst)</label>
-            <textarea id="ovText" placeholder="Twój komunikat..."
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; min-height:60px; font-family:inherit; font-size:16px;"></textarea>
+            <textarea id="ovText" placeholder="Twój komunikat..." style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; min-height:60px; font-family:inherit; font-size:16px;"></textarea>
 
-            <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
-
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Szukaj GIFa (po
-                angielsku)</label>
+            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Szukaj GIFa (po angielsku)</label>
             <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <input type="text" id="gifSearchQuery" placeholder="Np. applause, funny, fail..."
-                    style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px;">
-                <button onclick="searchGifs()"
-                    style="background:#9c27b0; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Szukaj</button>
+                <input type="text" id="gifSearchQuery" placeholder="Np. applause, funny, fail..." style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px;">
+                <button onclick="searchGifs()" style="background:#9c27b0; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Szukaj</button>
             </div>
-            <div id="gifResults"
-                style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; margin-bottom:5px; min-height: 60px;">
-            </div>
+            <div id="gifResults" style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; margin-bottom:5px; min-height: 60px;"></div>
 
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Lub własny link do
-                GIFa/Obrazka</label>
-            <input type="text" id="ovImg" placeholder="https://..."
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box;">
+            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Lub własny link do GIFa/Obrazka</label>
+            <input type="text" id="ovImg" placeholder="https://..." style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box;">
+            
+            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:flex; justify-content:space-between;">
+                <span>Wielkość na ekranie:</span>
+                <span id="sizeValDisplay" style="color:#bb86fc; font-weight:bold;">50%</span>
+            </label>
+            <input type="range" id="ovSize" min="20" max="100" value="50" oninput="document.getElementById('sizeValDisplay').textContent = this.value + '%'" style="width:100%; margin-bottom:20px; accent-color: #9c27b0;">
+            
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
+                <div style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
+                    <span style="flex:1; font-size:13px; color:#ddd; font-weight:bold;">📺 Ekran 2 (TV)</span>
+                    <button onclick="sendOverlay(true, 'tv')" style="background:#4CAF50; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️ Pokaż</button>
+                    <button onclick="sendOverlay(false, 'tv')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖ Ukryj</button>
+                </div>
+                <div style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
+                    <span style="flex:1; font-size:13px; color:#ddd; font-weight:bold;">🖥️ Ekran 3 (Laptop)</span>
+                    <button onclick="sendOverlay(true, 'roboczy')" style="background:#4CAF50; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️ Pokaż</button>
+                    <button onclick="sendOverlay(false, 'roboczy')" style="background:#f44336; color:white; border:none; padding:6px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖ Ukryj</button>
+                </div>
+            </div>
 
             <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
 
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Szybki Dźwięk</label>
-            <select id="quickSoundSelect" onchange="document.getElementById('ovAudio').value = this.value;"
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; font-size:16px;">
-                <option value="">-- Wybierz (lub zostaw puste) --</option>
-                <optgroup label="✅ Sukces / Fanfary">
+            <h3 style="margin:0 0 15px 0; color:#03dac6; text-align:center; text-transform: uppercase;">Fonia (Nagłośnienie)</h3>
+
+            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Wybierz efekt dźwiękowy</label>
+            <select id="quickSoundSelect" onchange="document.getElementById('ovAudio').value = this.value;" style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; font-size:16px;">
+                <option value="">-- Wybierz (lub wklej link niżej) --</option>
+                <optgroup label="✅ Pozytywne / Sukces">
                     <option value="https://www.myinstants.com/media/sounds/tada.mp3">🎉 Tada! (Fanfary)</option>
-                    <option value="https://www.myinstants.com/media/sounds/correct-answer-sound-effect-19-kbit.mp3">🟢
-                        Poprawna Odpowiedź</option>
-                    <option value="https://www.myinstants.com/media/sounds/1-up.mp3">🍄 Mario 1-UP</option>
-                    <option value="https://www.myinstants.com/media/sounds/final-fantasy-v-music-victory-fanfare.mp3">⚔️
-                        Victory Fanfare</option>
+                    <option value="https://www.myinstants.com/media/sounds/correct-answer-sound-effect-19-kbit.mp3">🟢 Poprawna Odpowiedź (Ping!)</option>
+                    <option value="https://www.myinstants.com/media/sounds/crowd-cheering.mp3">🙌 Tłum Wiwatuje</option>
                 </optgroup>
-                <optgroup label="❌ Fail / Błąd">
-                    <option value="https://www.myinstants.com/media/sounds/sadtrombone.mp3">📉 Smutny Puzon</option>
-                    <option value="https://www.myinstants.com/media/sounds/bruh_4.mp3">🤦 Bruh</option>
+                <optgroup label="❌ Negatywne / Fail">
+                    <option value="https://www.myinstants.com/media/sounds/sadtrombone.mp3">📉 Smutny Puzon (Fail)</option>
                     <option value="https://www.myinstants.com/media/sounds/buzzer_1.mp3">🔴 Błąd (Buzzer)</option>
-                    <option value="https://www.myinstants.com/media/sounds/roblox-death-sound_1.mp3">💥 Oof!</option>
-                    <option value="https://www.myinstants.com/media/sounds/windows-xp-error.mp3">💻 Windows Error
-                    </option>
+                    <option value="https://www.myinstants.com/media/sounds/bruh_4.mp3">🤦 Bruh</option>
+                    <option value="https://www.myinstants.com/media/sounds/booing.mp3">👎 Buczenie Tłumu</option>
                 </optgroup>
-                <optgroup label="😂 Reakcje">
-                    <option value="https://www.myinstants.com/media/sounds/anime-wow-sound-effect.mp3">😲 Anime WOW!
-                    </option>
+                <optgroup label="😂 Żart / Reakcje">
+                    <option value="https://www.myinstants.com/media/sounds/rimshot.mp3">🥁 Ba-dum Tss!</option>
                     <option value="https://www.myinstants.com/media/sounds/crickets.mp3">🦗 Świerszcze (Cisza)</option>
-                    <option value="https://www.myinstants.com/media/sounds/rimshot.mp3">🥁 Ba-dum Tss! (Żart)</option>
-                    <option value="https://www.myinstants.com/media/sounds/crowd-laughing-sound-effect.mp3">🤣 Śmiech
-                        widowni</option>
-                    <option value="https://www.myinstants.com/media/sounds/booing-sound-effect.mp3">👎 Buczenie (Boo)
-                    </option>
+                    <option value="https://www.myinstants.com/media/sounds/laugh-track.mp3">🤣 Śmiech Widowni</option>
+                    <option value="https://www.myinstants.com/media/sounds/anime-wow-sound-effect.mp3">😲 Anime WOW!</option>
                 </optgroup>
-                <optgroup label="🚨 Akcja / Napięcie">
-                    <option value="https://www.myinstants.com/media/sounds/suspense.mp3">😱 Napięcie (Bęben)</option>
+                <optgroup label="🚨 Akcja / Efekty">
                     <option value="https://www.myinstants.com/media/sounds/dun-dun-dunnn.mp3">🚨 Dun Dun Dunnn!</option>
-                    <option value="https://www.myinstants.com/media/sounds/fart-with-reverb.mp3">💨 Pierdnięcie z Echem
-                    </option>
-                    <option
-                        value="https://www.myinstants.com/media/sounds/gta-san-andreas-ah-shit-here-we-go-again.mp3">🚶
-                        Ah shit, here we go again</option>
+                    <option value="https://www.myinstants.com/media/sounds/drum-roll.mp3">🥁 Werble (Drum Roll)</option>
+                    <option value="https://www.myinstants.com/media/sounds/jeopardy-theme.mp3">⏱️ Jeopardy Theme (Czas leci)</option>
+                    <option value="https://www.myinstants.com/media/sounds/record-scratch.mp3">💿 Zatrzymanie Płyty (Scratch)</option>
                 </optgroup>
             </select>
 
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Lub własny link do dźwięku
-                (.mp3)</label>
-            <input type="text" id="ovAudio" placeholder="https://..."
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:20px; box-sizing:border-box;">
-
-            <label
-                style="font-size:12px; color:#bb86fc; margin-bottom:8px; display:block; text-align:center; font-weight:bold;">WYŚLIJ
-                NA EKRAN:</label>
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <div
-                    style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
-                    <span style="flex:1; font-size:14px; color:#ddd; font-weight:bold;">📺 Ekran 2 (Główny TV)</span>
-                    <button onclick="sendOverlay(true, 'tv')"
-                        style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️
-                        Pokaż</button>
-                    <button onclick="sendOverlay(false, 'tv')"
-                        style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖
-                        Ukryj</button>
-                </div>
-                <div
-                    style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
-                    <span style="flex:1; font-size:14px; color:#ddd; font-weight:bold;">🖥️ Ekran 3 (Panel
-                        Roboczy)</span>
-                    <button onclick="sendOverlay(true, 'roboczy')"
-                        style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️
-                        Pokaż</button>
-                    <button onclick="sendOverlay(false, 'roboczy')"
-                        style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖
-                        Ukryj</button>
-                </div>
+            <input type="text" id="ovAudio" placeholder="https://..." style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box;">
+            
+            <div style="display:flex; gap:10px;">
+                <button onclick="sendAudio('play')" style="flex:1; background:#03dac6; color:#000; border:none; padding:14px; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">▶️ Odtwórz</button>
+                <button onclick="sendAudio('stop')" style="flex:1; background:#b0bec5; color:#000; border:none; padding:14px; border-radius:8px; font-weight:bold; font-size:16px; cursor:pointer;">⏹️ Stop</button>
             </div>
-
-            <button onclick="document.getElementById('overlayModal').style.display='none'"
-                style="width:100%; background:transparent; color:#888; border:none; margin-top:15px; padding:10px; font-size:14px; cursor:pointer;">Zwiń
-                panel</button>
+            
+            <button onclick="document.getElementById('overlayModal').style.display='none'" style="width:100%; background:transparent; color:#888; border:none; margin-top:15px; padding:10px; font-size:14px; cursor:pointer;">✖ Zamknij panel</button>
         </div>
     </div>
     <script>
@@ -805,64 +775,70 @@
         }
         function sendOverlay(active, target) {
             if (!myPin) { location.reload(); return; }
-
+            
             const text = document.getElementById('ovText').value.trim();
             const img = document.getElementById('ovImg').value.trim();
-            const audio = document.getElementById('ovAudio').value.trim();
-
+            const size = parseInt(document.getElementById('ovSize').value);
+            
             const payload = { active: active };
-
+            
             if (active) {
                 payload.text = text;
                 payload.imageUrl = img;
-                payload.audioUrl = audio;
-                payload.timestamp = Date.now();
+                payload.size = size;
+                // Usunęliśmy audio stąd, żeby nie mieszać sygnałów
             }
-
-            // KIEROWANIE RUCHU ZALEŻNIE OD WYBRANEGO EKRANU
-            if (target === 'roboczy') {
-                sendCmd('custom_overlay', payload);
-            } else if (target === 'tv') {
-                sendCmd('tv_overlay', payload);
-            }
-
-            // Lekka wibracja jako potwierdzenie (jeśli obsługiwana)
+            
+            if (target === 'roboczy') sendCmd('custom_overlay', payload); 
+            else if (target === 'tv') sendCmd('tv_overlay', payload); 
+            
             if (navigator.vibrate) navigator.vibrate(20);
         }
-        // POBIERANIE GIFÓW Z PUBLICZNEGO API TENOR
+
+        function sendAudio(action) {
+            if (!myPin) { location.reload(); return; }
+            const url = document.getElementById('ovAudio').value.trim();
+            
+            if (action === 'play' && !url) {
+                alert("Wybierz lub wklej link do dźwięku!");
+                return;
+            }
+
+            // Wysyła niezależną komendę, tylko dla dźwięku (do obsłużenia na laptopie)
+            sendCmd('remote_audio', { action: action, url: url, timestamp: Date.now() });
+            if (navigator.vibrate) navigator.vibrate(20);
+        }
+
         async function searchGifs() {
             const query = document.getElementById('gifSearchQuery').value.trim();
             const resultsDiv = document.getElementById('gifResults');
             if (!query) return;
 
             resultsDiv.innerHTML = '<span style="color:#aaa; font-size:12px;">Szukam...</span>';
-
+            
             try {
-                // Używamy publicznego klucza testowego LIVDSRZULELA
                 const res = await fetch(`https://g.tenor.com/v1/search?q=${encodeURIComponent(query)}&key=LIVDSRZULELA&limit=8`);
                 const data = await res.json();
-
+                
                 resultsDiv.innerHTML = '';
-                if (data.results && data.results.length > 0) {
+                if(data.results && data.results.length > 0) {
                     data.results.forEach(gif => {
                         const url = gif.media[0].gif.url;
-                        const preview = gif.media[0].nanogif.url; // Mniejsza wersja do podglądu
-
+                        const preview = gif.media[0].nanogif.url;
+                        
                         const img = document.createElement('img');
                         img.src = preview;
                         img.style.height = '60px';
                         img.style.borderRadius = '4px';
                         img.style.cursor = 'pointer';
                         img.style.border = '2px solid transparent';
-
-                        // Po kliknięciu wkleja link GIFa do głównego pola
+                        
                         img.onclick = () => {
                             document.getElementById('ovImg').value = url;
-                            // Resetujemy obramówki innych i zaznaczamy kliknięty
                             Array.from(resultsDiv.children).forEach(c => c.style.borderColor = 'transparent');
                             img.style.borderColor = '#9c27b0';
                         };
-
+                        
                         resultsDiv.appendChild(img);
                     });
                 } else {
@@ -873,11 +849,8 @@
             }
         }
 
-        // Pozwala wyszukiwać wciskając ENTER na klawiaturze w polu GIF
         document.getElementById('gifSearchQuery').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                searchGifs();
-            }
+            if (e.key === 'Enter') searchGifs();
         });
     </script>
 </body>
