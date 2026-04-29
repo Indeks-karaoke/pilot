@@ -251,7 +251,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .sound-grid-btn:active {
@@ -322,7 +322,8 @@
             </label>
         </div>
 
-        <div style="display: flex; justify-content: space-between; background: #222; padding: 8px; border-radius: 12px;">
+        <div
+            style="display: flex; justify-content: space-between; background: #222; padding: 8px; border-radius: 12px;">
             <button class="btn sfx-btn" onclick="sendCmd('sfx', 'Intro')" title="Intro">🎵</button>
             <button class="btn sfx-btn" onclick="sendCmd('sfx', 'Outro')" title="Outro">🏁</button>
             <button class="btn sfx-btn" onclick="sendCmd('sfx', 'Outro2')" title="Outro 2">🎬</button>
@@ -331,8 +332,9 @@
             <button class="btn sfx-btn" onclick="sendCmd('sfx', 'Dzwonek')" title="Dzwonek">🔔</button>
             <button class="btn sfx-btn" onclick="sendCmd('sfx', 'Błąd')" title="Błąd">❌</button>
         </div>
-        
-        <button id="btnMic" onclick="toggleMic()" style="background:#ff9800; color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; width:100%; margin-top:10px;">
+
+        <button id="btnMic" onclick="toggleMic()"
+            style="background:#ff9800; color:white; border:none; padding:15px; border-radius:12px; font-weight:bold; width:100%; margin-top:10px;">
             🎙️ WŁĄCZ MIKROFON (TALKBACK)
         </button>
     </div>
@@ -367,40 +369,54 @@
             </div>
         </div>
     </div>
-    
+
     <div style="position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; gap: 8px; z-index: 9999;">
-        <button onclick="document.getElementById('overlayModal').style.display='flex'" style="flex:1.5; background: rgba(156, 39, 176, 0.85); border: 1px solid #7b1fa2; color: white; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+        <button onclick="document.getElementById('overlayModal').style.display='flex'"
+            style="flex:1.5; background: rgba(156, 39, 176, 0.85); border: 1px solid #7b1fa2; color: white; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
             🪄 Ekran
         </button>
-        <button onclick="document.getElementById('soundsModal').style.display='flex'" style="flex:1.5; background: rgba(3, 218, 198, 0.85); border: 1px solid #00b3a6; color: black; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+        <button onclick="document.getElementById('soundsModal').style.display='flex'"
+            style="flex:1.5; background: rgba(3, 218, 198, 0.85); border: 1px solid #00b3a6; color: black; border-radius: 12px; padding: 10px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
             🎵 Dźwięki
         </button>
-        <button onclick="forceUnlockUI()" title="Odblokuj przyciski" style="flex:1; background: rgba(34, 34, 34, 0.85); border: 1px solid #555; color: #ccc; border-radius: 12px; padding: 10px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+        <button onclick="forceUnlockUI()" title="Odblokuj przyciski"
+            style="flex:1; background: rgba(34, 34, 34, 0.85); border: 1px solid #555; color: #ccc; border-radius: 12px; padding: 10px; font-size: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
             🔄 Reset
         </button>
     </div>
 
-    <div id="overlayModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
-        <div style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #9c27b0; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3); max-height: 90vh; overflow-y: auto;">
-            
-            <textarea id="ovText" placeholder="Napis (dowolny tekst)..." style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; height:40px; min-height:40px; font-family:inherit; font-size:14px;"></textarea>
+    <div id="overlayModal"
+        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
+        <div
+            style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #9c27b0; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3); max-height: 90vh; overflow-y: auto;">
+
+            <textarea id="ovText" placeholder="Napis (dowolny tekst)..."
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; height:40px; min-height:40px; font-family:inherit; font-size:14px;"></textarea>
 
             <div style="display:flex; gap:5px; margin-bottom:5px;">
-                <input type="text" id="gifSearchQuery" placeholder="Szukaj GIFa (po angielsku)..." style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px; font-size: 12px;">
-                <button onclick="searchGifs()" style="background:#9c27b0; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Szukaj</button>
+                <input type="text" id="gifSearchQuery" placeholder="Szukaj GIFa (po angielsku)..."
+                    style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px; font-size: 12px;">
+                <button onclick="searchGifs()"
+                    style="background:#9c27b0; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Szukaj</button>
             </div>
-            <div id="gifResults" style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; margin-bottom:5px; min-height: 60px;"></div>
+            <div id="gifResults"
+                style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; margin-bottom:5px; min-height: 60px;">
+            </div>
 
-            <input type="text" id="ovImg" placeholder="Lub własny link do GIFa/Obrazka (https://...)" style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; font-size: 12px;">
-            
+            <input type="text" id="ovImg" placeholder="Lub własny link do GIFa/Obrazka (https://...)"
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; font-size: 12px;">
+
             <div style="background:#222; padding:12px; border-radius:8px; margin-bottom:15px; border: 1px solid #444;">
-                <select id="tvWindowMode" onchange="document.getElementById('trackpadControls').style.display = this.value === 'window' ? 'block' : 'none';" style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:6px; padding:8px; margin-bottom:10px; font-weight:bold;">
+                <select id="tvWindowMode"
+                    onchange="document.getElementById('trackpadControls').style.display = this.value === 'window' ? 'block' : 'none';"
+                    style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:6px; padding:8px; margin-bottom:10px; font-weight:bold;">
                     <option value="window">🖥️ Tryb: Małe okienko (suwaki)</option>
                     <option value="fullscreen">🖥️ Tryb: Pełny Ekran</option>
                 </select>
 
                 <div id="trackpadControls">
-                    <select id="tvAspect" onchange="document.getElementById('posArea').style.aspectRatio = this.value;" style="width:100%; background:#1a1a1a; color:#aaa; border:1px solid #555; border-radius:6px; padding:6px; margin-bottom:15px; font-size: 12px;">
+                    <select id="tvAspect" onchange="document.getElementById('posArea').style.aspectRatio = this.value;"
+                        style="width:100%; background:#1a1a1a; color:#aaa; border:1px solid #555; border-radius:6px; padding:6px; margin-bottom:15px; font-size: 12px;">
                         <option value="16/9">📺 Proporcje TV: Panoramiczny (16:9)</option>
                         <option value="4/3">📺 Proporcje TV: Kwadratowy (4:3)</option>
                     </select>
@@ -408,56 +424,86 @@
                     <div style="display:flex; gap:10px; margin-bottom:10px; align-items: flex-end;">
                         <div style="flex:1;">
                             <label style="font-size:10px; color:#aaa;">Szerokość: <span id="wDisp">100%</span></label>
-                            <input type="range" id="winW" min="10" max="100" value="100" oninput="updateWinPreview()" style="width:100%; accent-color:#bb86fc;">
+                            <input type="range" id="winW" min="10" max="100" value="100" oninput="updateWinPreview()"
+                                style="width:100%; accent-color:#bb86fc;">
                         </div>
                         <div style="flex:1;">
                             <label style="font-size:10px; color:#aaa;">Wysokość: <span id="hDisp">100%</span></label>
-                            <input type="range" id="winH" min="10" max="100" value="100" oninput="updateWinPreview()" style="width:100%; accent-color:#bb86fc;">
+                            <input type="range" id="winH" min="10" max="100" value="100" oninput="updateWinPreview()"
+                                style="width:100%; accent-color:#bb86fc;">
                         </div>
-                        <button onclick="autoFitWindow()" title="Dopasuj wysokość do proporcji treści" style="background:#bb86fc; color:#000; border:none; border-radius:6px; padding:0 12px; height: 32px; font-weight:bold; cursor:pointer;">📏 Dopasuj</button>
+                        <button onclick="autoFitWindow()" title="Dopasuj wysokość do proporcji treści"
+                            style="background:#bb86fc; color:#000; border:none; border-radius:6px; padding:0 12px; height: 32px; font-weight:bold; cursor:pointer;">📏
+                            Dopasuj</button>
                     </div>
 
-                    <div id="posArea" style="width:100%; max-width:250px; aspect-ratio: 16/9; background:#000; border:1px solid #555; margin:10px auto; position:relative; overflow:hidden; cursor:crosshair; border-radius:4px;" onclick="setPos(event)">
-                        <div id="posBox" style="background:rgba(187, 134, 252, 0.4); border:1px solid #bb86fc; position:absolute; pointer-events:none; width:100%; height:100%; top:0; left:0;"></div>
+                    <div id="posArea"
+                        style="width:100%; max-width:250px; aspect-ratio: 16/9; background:#000; border:1px solid #555; margin:10px auto; position:relative; overflow:hidden; cursor:crosshair; border-radius:4px;"
+                        onclick="setPos(event)">
+                        <div id="posBox"
+                            style="background:rgba(187, 134, 252, 0.4); border:1px solid #bb86fc; position:absolute; pointer-events:none; width:100%; height:100%; top:0; left:0;">
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
             <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:20px;">
-                <div style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
+                <div
+                    style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
                     <span style="flex:1; font-size:13px; color:#ddd; font-weight:bold;">📺 Ekran 2 (TV)</span>
-                    <button onclick="sendOverlay(true, 'tv')" style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️ Pokaż</button>
-                    <button onclick="sendOverlay(false, 'tv')" style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖ Ukryj</button>
+                    <button onclick="sendOverlay(true, 'tv')"
+                        style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️
+                        Pokaż</button>
+                    <button onclick="sendOverlay(false, 'tv')"
+                        style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖
+                        Ukryj</button>
                 </div>
-                <div style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
+                <div
+                    style="display:flex; gap:8px; align-items:center; background:#222; padding:10px; border-radius:8px;">
                     <span style="flex:1; font-size:13px; color:#ddd; font-weight:bold;">🖥️ Ekran 3 (Laptop)</span>
-                    <button onclick="sendOverlay(true, 'roboczy')" style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️ Pokaż</button>
-                    <button onclick="sendOverlay(false, 'roboczy')" style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖ Ukryj</button>
+                    <button onclick="sendOverlay(true, 'roboczy')"
+                        style="background:#4CAF50; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">👁️
+                        Pokaż</button>
+                    <button onclick="sendOverlay(false, 'roboczy')"
+                        style="background:#f44336; color:white; border:none; padding:8px 12px; border-radius:6px; font-weight:bold; cursor:pointer;">✖
+                        Ukryj</button>
                 </div>
             </div>
 
-            <button onclick="document.getElementById('overlayModal').style.display='none'" style="width:100%; background:transparent; color:#888; border:none; padding:10px; font-size:14px; cursor:pointer;">✖ Zamknij panel ekranu</button>
+            <button onclick="document.getElementById('overlayModal').style.display='none'"
+                style="width:100%; background:transparent; color:#888; border:none; padding:10px; font-size:14px; cursor:pointer;">✖
+                Zamknij panel ekranu</button>
         </div>
     </div>
 
-    <div id="soundsModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
-        <div style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #03dac6; box-shadow: 0 10px 30px rgba(3, 218, 198, 0.2); max-height: 90vh; overflow-y: auto;">
-            
-            <div id="soundsGrid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 20px;">
-                <div style="grid-column: 1 / -1; text-align: center; color: #888; font-size: 12px; padding: 20px;">Pobieranie dźwięków z bazy...</div>
+    <div id="soundsModal"
+        style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:10000; flex-direction:column; align-items:center; justify-content:center; padding:15px; box-sizing:border-box;">
+        <div
+            style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #03dac6; box-shadow: 0 10px 30px rgba(3, 218, 198, 0.2); max-height: 90vh; overflow-y: auto;">
+
+            <div id="soundsGrid"
+                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 20px;">
+                <div style="grid-column: 1 / -1; text-align: center; color: #888; font-size: 12px; padding: 20px;">
+                    Pobieranie dźwięków z bazy...</div>
             </div>
 
             <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
 
-            <label style="font-size:12px; color:#03dac6; margin-bottom:10px; display:block; font-weight:bold;">➕ DODAJ WŁASNY DŹWIĘK DO BAZY</label>
-            <input type="text" id="newSoundTitle" placeholder="Krótka nazwa (np. Bęben)" style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:8px; box-sizing:border-box; font-size:12px;">
-            <input type="text" id="newSoundUrl" placeholder="Link (http... .mp3)" style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; font-size:12px;">
-            
-            <button id="addSoundBtn" onclick="addNewSound()" style="width:100%; background:#333; color:white; border:1px solid #555; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">
+            <label style="font-size:12px; color:#03dac6; margin-bottom:10px; display:block; font-weight:bold;">➕ DODAJ
+                WŁASNY DŹWIĘK DO BAZY</label>
+            <input type="text" id="newSoundTitle" placeholder="Krótka nazwa (np. Bęben)"
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:8px; box-sizing:border-box; font-size:12px;">
+            <input type="text" id="newSoundUrl" placeholder="Link (http... .mp3)"
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; font-size:12px;">
+
+            <button id="addSoundBtn" onclick="addNewSound()"
+                style="width:100%; background:#333; color:white; border:1px solid #555; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">
                 Zapisz
             </button>
 
-            <button onclick="document.getElementById('soundsModal').style.display='none'" style="width:100%; background:transparent; color:#888; border:none; margin-top:15px; padding:10px; font-size:14px; cursor:pointer;">✖ Zamknij panel</button>
+            <button onclick="document.getElementById('soundsModal').style.display='none'"
+                style="width:100%; background:transparent; color:#888; border:none; margin-top:15px; padding:10px; font-size:14px; cursor:pointer;">✖
+                Zamknij panel</button>
         </div>
     </div>
 
@@ -817,7 +863,7 @@
                 }
             });
         }
-        
+
         function forceUnlockUI() {
             waitingForSongChange = false;
             isPlaying = false;
@@ -839,7 +885,7 @@
         function renderSoundsGrid() {
             const grid = document.getElementById('soundsGrid');
             grid.innerHTML = '';
-            
+
             if (gistSounds.length === 0) {
                 grid.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: #888; font-size: 12px; padding: 20px;">Brak dźwięków w bazie.</div>';
                 return;
@@ -860,7 +906,7 @@
                         // Pierwsze kliknięcie - odtwarza
                         sendCmd('remote_audio', { action: 'play', url: sound.url, timestamp: Date.now() });
                         currentlyPlayingUrl = sound.url;
-                        
+
                         // Zresetuj wygląd innych przycisków
                         document.querySelectorAll('.sound-grid-btn').forEach(b => b.classList.remove('playing'));
                         btn.classList.add('playing');
@@ -899,13 +945,13 @@
                     method: 'POST',
                     body: JSON.stringify({ action: 'add_sound', title: title, url: url })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.success) {
                     gistSounds.push({ title: title, url: url });
                     renderSoundsGrid();
-                    
+
                     titleInput.value = '';
                     urlInput.value = '';
                 } else {
@@ -928,14 +974,14 @@
             const h = document.getElementById('winH').value;
             document.getElementById('wDisp').textContent = w + "%";
             document.getElementById('hDisp').textContent = h + "%";
-            
+
             const box = document.getElementById('posBox');
             box.style.width = w + "%";
             box.style.height = h + "%";
-            
+
             if (relX + parseInt(w) > 100) relX = 100 - parseInt(w);
             if (relY + parseInt(h) > 100) relY = 100 - parseInt(h);
-            
+
             box.style.left = relX + "%";
             box.style.top = relY + "%";
         }
@@ -945,13 +991,13 @@
             const rect = area.getBoundingClientRect();
             const w = document.getElementById('winW').value;
             const h = document.getElementById('winH').value;
-            
+
             let x = ((e.clientX - rect.left) / rect.width) * 100;
             let y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-            relX = Math.max(0, Math.min(100 - w, x - w/2));
-            relY = Math.max(0, Math.min(100 - h, y - h/2));
-            
+
+            relX = Math.max(0, Math.min(100 - w, x - w / 2));
+            relY = Math.max(0, Math.min(100 - h, y - h / 2));
+
             updateWinPreview();
         }
 
@@ -960,7 +1006,7 @@
             const hInput = document.getElementById('winH');
             const imgUrl = document.getElementById('ovImg').value.trim();
             const textVal = document.getElementById('ovText').value.trim();
-            
+
             const tvAspectStr = document.getElementById('tvAspect').value.split('/');
             const screenRatio = parseFloat(tvAspectStr[0]) / parseFloat(tvAspectStr[1]);
 
@@ -996,7 +1042,7 @@
             const h = document.getElementById('winH').value;
             const mode = document.getElementById('tvWindowMode').value;
 
-            const payload = { 
+            const payload = {
                 active: active,
                 text: text,
                 imageUrl: img,
@@ -1056,7 +1102,7 @@
         // ===============================================
         // LOGIKA WEBRTC (MIKROFON NA ŻYWO)
         // ===============================================
-        
+
         async function toggleMic() {
             const btn = document.getElementById('btnMic');
 
@@ -1066,7 +1112,6 @@
                 localStream = null;
                 if (peerConnection) peerConnection.close();
                 peerConnection = null;
-                // Czyścimy bazę sygnałów, żeby system był gotowy na kolejne połączenie
                 db.ref('webrtc').remove();
                 btn.innerHTML = '🎙️ WŁĄCZ MIKROFON (TALKBACK)';
                 btn.style.background = '#ff9800';
@@ -1076,28 +1121,32 @@
             // WŁĄCZANIE MIKROFONU
             try {
                 btn.innerHTML = '⏳ Łączenie...';
-                
-                // 1. Prosimy przeglądarkę na telefonie o dostęp do mikrofonu
+
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
                 peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-                
-                // 2. Dodajemy nasz mikrofon do połączenia
+
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-                // 3. Wymiana kandydatów sieciowych
+                // 3. Wymiana kandydatów sieciowych (BEZ toJSON)
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
-                        db.ref('webrtc/pilot_candidates').push(event.candidate.toJSON());
+                        db.ref('webrtc/pilot_candidates').push({
+                            candidate: event.candidate.candidate,
+                            sdpMid: event.candidate.sdpMid,
+                            sdpMLineIndex: event.candidate.sdpMLineIndex
+                        });
                     }
                 };
 
-                // 4. Tworzymy zaproszenie do laptopa ("Offer")
+                // 4. Tworzymy zaproszenie do laptopa (BEZ toJSON)
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-                db.ref('webrtc/offer').set(offer.toJSON());
+                db.ref('webrtc/offer').set({
+                    type: offer.type,
+                    sdp: offer.sdp
+                });
 
-                // 5. Czekamy na odpowiedź z laptopa ("Answer")
+                // 5. Czekamy na odpowiedź z laptopa
                 db.ref('webrtc/answer').on('value', async (snap) => {
                     const answer = snap.val();
                     if (answer && peerConnection.signalingState !== 'stable') {
