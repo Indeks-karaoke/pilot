@@ -1102,7 +1102,7 @@
         // ===============================================
         // LOGIKA WEBRTC (MIKROFON NA ŻYWO)
         // ===============================================
-
+        
         async function toggleMic() {
             const btn = document.getElementById('btnMic');
 
@@ -1121,13 +1121,13 @@
             // WŁĄCZANIE MIKROFONU
             try {
                 btn.innerHTML = '⏳ Łączenie...';
-
+                
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
-
+                
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-                // 3. Wymiana kandydatów sieciowych (BEZ toJSON)
+                // Wymiana kandydatów sieciowych
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
                         db.ref('webrtc/pilot_candidates').push({
@@ -1138,7 +1138,7 @@
                     }
                 };
 
-                // 4. Tworzymy zaproszenie do laptopa (BEZ toJSON)
+                // Tworzymy zaproszenie do laptopa
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
                 db.ref('webrtc/offer').set({
@@ -1146,25 +1146,33 @@
                     sdp: offer.sdp
                 });
 
-                // 5. Czekamy na odpowiedź z laptopa
+                // Czekamy na odpowiedź z laptopa
+                db.ref('webrtc/answer').off();
                 db.ref('webrtc/answer').on('value', async (snap) => {
                     const answer = snap.val();
-                    if (answer && peerConnection.signalingState !== 'stable') {
-                        await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-                        btn.innerHTML = '🔴 MIKROFON NA ŻYWO (Kliknij by wyłączyć)';
-                        btn.style.background = '#e53935';
-                        if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                    if (answer && peerConnection && peerConnection.signalingState !== 'stable') {
+                        try {
+                            await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: answer.type, sdp: answer.sdp }));
+                            btn.innerHTML = '🔴 MIKROFON NA ŻYWO (Kliknij by wyłączyć)';
+                            btn.style.background = '#e53935';
+                            if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                        } catch (err) {
+                            alert("Błąd odbioru sygnału: " + err.message);
+                        }
                     }
                 });
 
-                // 6. Odbieramy drogi sieciowe laptopa
+                // Odbieramy drogi sieciowe laptopa
+                db.ref('webrtc/laptop_candidates').off();
                 db.ref('webrtc/laptop_candidates').on('child_added', (snap) => {
                     const candidate = snap.val();
-                    if (candidate) peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    if (candidate && peerConnection.remoteDescription) {
+                        peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+                    }
                 });
 
             } catch (err) {
-                alert("Brak uprawnień do mikrofonu lub błąd: " + err.message);
+                alert("Brak uprawnień lub błąd: " + err.message);
                 btn.innerHTML = '🎙️ WŁĄCZ MIKROFON (TALKBACK)';
                 btn.style.background = '#ff9800';
             }
