@@ -234,14 +234,15 @@
             pointer-events: none;
         }
 
-        /* PRZYCISKI W SIATCE DŹWIĘKÓW */
+        /* PRZYCISKI W SIATCE DŹWIĘKÓW (ZMNIEJSZONE) */
         .sound-grid-btn {
             background: #2a2a2a;
             color: #fff;
             border: 1px solid #444;
-            border-radius: 8px;
-            padding: 12px 5px;
-            font-size: 13px;
+            border-radius: 6px;
+            padding: 8px 2px;
+            font-size: 10px;
+            line-height: 1.1;
             font-weight: bold;
             cursor: pointer;
             transition: 0.1s;
@@ -250,13 +251,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         }
 
         .sound-grid-btn:active {
             background: #03dac6;
             color: #000;
             transform: scale(0.95);
+        }
+
+        .sound-grid-btn.playing {
+            background: #03dac6;
+            color: #000;
+            border-color: #00b3a6;
         }
     </style>
 </head>
@@ -378,18 +385,12 @@
         <div
             style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #9c27b0; box-shadow: 0 10px 30px rgba(156, 39, 176, 0.3); max-height: 90vh; overflow-y: auto;">
 
-            <h3 style="margin:0 0 15px 0; color:#bb86fc; text-align:center; text-transform: uppercase;">Wizja (Ekran)
-            </h3>
+            <textarea id="ovText" placeholder="Napis (dowolny tekst)..."
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; height:40px; min-height:40px; font-family:inherit; font-size:14px;"></textarea>
 
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Napis (dowolny tekst)</label>
-            <textarea id="ovText" placeholder="Twój komunikat..."
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; min-height:60px; font-family:inherit; font-size:16px;"></textarea>
-
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Szukaj GIFa (po
-                angielsku)</label>
-            <div style="display:flex; gap:5px; margin-bottom:10px;">
-                <input type="text" id="gifSearchQuery" placeholder="Np. applause, funny, fail..."
-                    style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px;">
+            <div style="display:flex; gap:5px; margin-bottom:5px;">
+                <input type="text" id="gifSearchQuery" placeholder="Szukaj GIFa (po angielsku)..."
+                    style="flex:1; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:8px; font-size: 12px;">
                 <button onclick="searchGifs()"
                     style="background:#9c27b0; color:white; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">Szukaj</button>
             </div>
@@ -397,34 +398,25 @@
                 style="display:flex; gap:5px; overflow-x:auto; padding-bottom:5px; margin-bottom:5px; min-height: 60px;">
             </div>
 
-            <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Lub własny link do
-                GIFa/Obrazka</label>
-            <input type="text" id="ovImg" placeholder="https://..."
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box;">
+            <input type="text" id="ovImg" placeholder="Lub własny link do GIFa/Obrazka (https://...)"
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:15px; box-sizing:border-box; font-size: 12px;">
 
             <div style="background:#222; padding:12px; border-radius:8px; margin-bottom:15px; border: 1px solid #444;">
-                <label
-                    style="font-size:12px; color:#bb86fc; font-weight:bold; margin-bottom:10px; display:block; text-transform:uppercase;">⚙️
-                    Rozmiar i Położenie (Tylko TV)</label>
-
-                <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Tryb okna</label>
                 <select id="tvWindowMode"
                     onchange="document.getElementById('trackpadControls').style.display = this.value === 'window' ? 'block' : 'none';"
-                    style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:6px; padding:8px; margin-bottom:10px;">
-                    <option value="window">Małe okienko (suwaki)</option>
-                    <option value="fullscreen">Pełny Ekran</option>
+                    style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:6px; padding:8px; margin-bottom:10px; font-weight:bold;">
+                    <option value="window">🖥️ Tryb: Małe okienko (suwaki)</option>
+                    <option value="fullscreen">🖥️ Tryb: Pełny Ekran</option>
                 </select>
 
                 <div id="trackpadControls">
-                    <label style="font-size:12px; color:#aaa; margin-bottom:5px; display:block;">Proporcje TV (do
-                        podglądu)</label>
                     <select id="tvAspect" onchange="document.getElementById('posArea').style.aspectRatio = this.value;"
-                        style="width:100%; background:#1a1a1a; color:white; border:1px solid #555; border-radius:6px; padding:8px; margin-bottom:15px;">
-                        <option value="16/9">Panoramiczny (16:9 - Nowsze TV)</option>
-                        <option value="4/3">Kwadratowy (4:3 - Rzutniki / Starsze TV)</option>
+                        style="width:100%; background:#1a1a1a; color:#aaa; border:1px solid #555; border-radius:6px; padding:6px; margin-bottom:15px; font-size: 12px;">
+                        <option value="16/9">📺 Proporcje TV: Panoramiczny (16:9)</option>
+                        <option value="4/3">📺 Proporcje TV: Kwadratowy (4:3)</option>
                     </select>
 
-                    <div style="display:flex; gap:10px; margin-bottom:10px;">
+                    <div style="display:flex; gap:10px; margin-bottom:10px; align-items: flex-end;">
                         <div style="flex:1;">
                             <label style="font-size:10px; color:#aaa;">Szerokość: <span id="wDisp">100%</span></label>
                             <input type="range" id="winW" min="10" max="100" value="100" oninput="updateWinPreview()"
@@ -435,6 +427,9 @@
                             <input type="range" id="winH" min="10" max="100" value="100" oninput="updateWinPreview()"
                                 style="width:100%; accent-color:#bb86fc;">
                         </div>
+                        <button onclick="autoFitWindow()" title="Dopasuj wysokość do proporcji treści"
+                            style="background:#bb86fc; color:#000; border:none; border-radius:6px; padding:0 12px; height: 32px; font-weight:bold; cursor:pointer;">📏
+                            Dopasuj</button>
                     </div>
 
                     <div id="posArea"
@@ -444,8 +439,6 @@
                             style="background:rgba(187, 134, 252, 0.4); border:1px solid #bb86fc; position:absolute; pointer-events:none; width:100%; height:100%; top:0; left:0;">
                         </div>
                     </div>
-                    <p style="font-size:9px; color:#666; text-align:center; margin:0;">Kliknij w czarnym polu, aby
-                        ustawić pozycję okna</p>
                 </div>
             </div>
 
@@ -483,37 +476,29 @@
         <div
             style="background:#1a1a1a; width:100%; max-width:450px; padding:20px; border-radius:12px; border:1px solid #03dac6; box-shadow: 0 10px 30px rgba(3, 218, 198, 0.2); max-height: 90vh; overflow-y: auto;">
 
-            <h3 style="margin:0 0 15px 0; color:#03dac6; text-align:center; text-transform: uppercase;">🎵 Panel
-                Dźwięków</h3>
-
             <div id="soundsGrid"
-                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px;">
+                style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-bottom: 20px;">
                 <div style="grid-column: 1 / -1; text-align: center; color: #888; font-size: 12px; padding: 20px;">
                     Pobieranie dźwięków z bazy...</div>
             </div>
-
-            <button onclick="sendAudio('stop')"
-                style="width:100%; background:#d32f2f; color:white; border:none; padding:14px; border-radius:8px; font-weight:bold; font-size:16px; margin-bottom:15px; cursor:pointer;">
-                ⏹️ ZATRZYMAJ DŹWIĘK
-            </button>
 
             <hr style="border:0; border-top:1px solid #333; margin: 15px 0;">
 
             <label style="font-size:12px; color:#03dac6; margin-bottom:10px; display:block; font-weight:bold;">➕ DODAJ
                 WŁASNY DŹWIĘK DO BAZY</label>
             <input type="text" id="newSoundTitle" placeholder="Krótka nazwa (np. Bęben)"
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:8px; box-sizing:border-box;">
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:8px; box-sizing:border-box; font-size:12px;">
             <input type="text" id="newSoundUrl" placeholder="Link (http... .mp3)"
-                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box;">
+                style="width:100%; background:#2c2c2c; color:white; border:1px solid #444; border-radius:6px; padding:10px; margin-bottom:10px; box-sizing:border-box; font-size:12px;">
 
             <button id="addSoundBtn" onclick="addNewSound()"
-                style="width:100%; background:#333; color:white; border:1px solid #555; padding:12px; border-radius:6px; cursor:pointer; font-weight:bold;">
-                Dodaj do bazy
+                style="width:100%; background:#333; color:white; border:1px solid #555; padding:10px; border-radius:6px; cursor:pointer; font-weight:bold;">
+                Zapisz
             </button>
 
             <button onclick="document.getElementById('soundsModal').style.display='none'"
                 style="width:100%; background:transparent; color:#888; border:none; margin-top:15px; padding:10px; font-size:14px; cursor:pointer;">✖
-                Zamknij panel dźwięków</button>
+                Zamknij panel</button>
         </div>
     </div>
 
@@ -534,7 +519,6 @@
             appId: "1:870801348066:web:1eb45469e18a2ea45e15bb"
         };
 
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -554,6 +538,7 @@
         let relX = 0;
         let relY = 0;
         let gistSounds = [];
+        let currentlyPlayingUrl = null;
 
         const uiMode = document.getElementById('uiMode');
         const uiMain = document.getElementById('uiMainDisplay');
@@ -849,7 +834,6 @@
                 unlockTimeout = setTimeout(unlockButtons, 1500);
             }
 
-            // DO FIREBASE LECĄ TYLKO KOMENDY (Pilot -> Extension)
             db.ref('remote_cmd').set({ action: action, value: value, pin: myPin, ts: lastCmdTs })
                 .catch(e => { localStorage.removeItem('dj_pin'); location.reload(); });
 
@@ -898,12 +882,34 @@
                 return;
             }
 
-            gistSounds.forEach(sound => {
+            gistSounds.forEach((sound, i) => {
                 const btn = document.createElement('button');
                 btn.className = 'sound-grid-btn';
+                btn.id = 'sound-btn-' + i;
                 btn.textContent = sound.title;
                 btn.onclick = () => {
-                    sendCmd('remote_audio', { action: 'play', url: sound.url, timestamp: Date.now() });
+                    if (currentlyPlayingUrl === sound.url) {
+                        // Drugie kliknięcie podczas grania - zatrzymuje
+                        sendCmd('remote_audio', { action: 'stop', timestamp: Date.now() });
+                        currentlyPlayingUrl = null;
+                        btn.classList.remove('playing');
+                    } else {
+                        // Pierwsze kliknięcie - odtwarza
+                        sendCmd('remote_audio', { action: 'play', url: sound.url, timestamp: Date.now() });
+                        currentlyPlayingUrl = sound.url;
+
+                        // Zresetuj wygląd innych przycisków
+                        document.querySelectorAll('.sound-grid-btn').forEach(b => b.classList.remove('playing'));
+                        btn.classList.add('playing');
+
+                        // Po 8 sekundach "zapominamy" blokadę dla wygody, by przyciski nie zostały na stałe wcisnięte
+                        setTimeout(() => {
+                            if (currentlyPlayingUrl === sound.url) {
+                                currentlyPlayingUrl = null;
+                                btn.classList.remove('playing');
+                            }
+                        }, 8000);
+                    }
                     if (navigator.vibrate) navigator.vibrate(20);
                 };
                 grid.appendChild(btn);
@@ -922,11 +928,10 @@
                 return;
             }
 
-            btn.textContent = "⏳ Dodawanie do bazy...";
+            btn.textContent = "⏳ Dodawanie...";
             btn.disabled = true;
 
             try {
-                // Wysłanie zapytania POST do pośrednika Apps Script
                 const response = await fetch(APPS_SCRIPT_PROXY_URL, {
                     method: 'POST',
                     body: JSON.stringify({ action: 'add_sound', title: title, url: url })
@@ -935,27 +940,20 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Od razu dodajemy dźwięk lokalnie na liście, bez czekania na odświeżenie
                     gistSounds.push({ title: title, url: url });
                     renderSoundsGrid();
 
                     titleInput.value = '';
                     urlInput.value = '';
-                    alert("✅ Zapisano pomyślnie na serwerze!");
                 } else {
                     alert("Błąd: " + result.error);
                 }
             } catch (err) {
                 alert("Wystąpił problem z połączeniem: " + err.message);
             } finally {
-                btn.textContent = "Dodaj do bazy";
+                btn.textContent = "Zapisz";
                 btn.disabled = false;
             }
-        }
-
-        function sendAudio(action) {
-            sendCmd('remote_audio', { action: action, timestamp: Date.now() });
-            if (navigator.vibrate) navigator.vibrate(20);
         }
 
         // ===============================================
@@ -992,6 +990,38 @@
             relY = Math.max(0, Math.min(100 - h, y - h / 2));
 
             updateWinPreview();
+        }
+
+        function autoFitWindow() {
+            const wInput = document.getElementById('winW');
+            const hInput = document.getElementById('winH');
+            const imgUrl = document.getElementById('ovImg').value.trim();
+            const textVal = document.getElementById('ovText').value.trim();
+
+            const tvAspectStr = document.getElementById('tvAspect').value.split('/');
+            const screenRatio = parseFloat(tvAspectStr[0]) / parseFloat(tvAspectStr[1]);
+
+            if (imgUrl) {
+                // Skrypt ładuje obrazek w tle, by poznać jego wymiary
+                const img = new Image();
+                img.onload = () => {
+                    const imgRatio = img.naturalWidth / img.naturalHeight;
+                    // Skomplikowany ułamek proporcji zamieniony na perfekcyjne dopasowanie
+                    let newH = parseInt(wInput.value) * (screenRatio / imgRatio);
+                    newH = Math.max(10, Math.min(100, Math.round(newH))); // Zabezpieczenie przed wyjściem za ekran
+                    hInput.value = newH;
+                    updateWinPreview();
+                    if (navigator.vibrate) navigator.vibrate(20);
+                };
+                img.src = imgUrl;
+            } else if (textVal) {
+                // Dla tekstów tworzymy płaski baner dopasowany w 1/3 do swojej szerokości
+                let newH = parseInt(wInput.value) / 3;
+                newH = Math.max(10, Math.min(100, Math.round(newH)));
+                hInput.value = newH;
+                updateWinPreview();
+                if (navigator.vibrate) navigator.vibrate(20);
+            }
         }
 
         function sendOverlay(active, target) {
