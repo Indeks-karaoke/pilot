@@ -1099,8 +1099,8 @@
             if (e.key === 'Enter') searchGifs();
         });
 
-        // ===============================================
-        // LOGIKA WEBRTC (MIKROFON NA ŻYWO)
+       // ===============================================
+        // LOGIKA WEBRTC (MIKROFON NA ŻYWO) - DIAGNOSTYKA
         // ===============================================
         
         async function toggleMic() {
@@ -1115,16 +1115,21 @@
                 db.ref('webrtc').remove();
                 btn.innerHTML = '🎙️ WŁĄCZ MIKROFON (TALKBACK)';
                 btn.style.background = '#ff9800';
+                sendCmd('debug', 'Zatrzymano mikrofon na telefonie');
                 return;
             }
 
             // WŁĄCZANIE MIKROFONU
             try {
-                btn.innerHTML = '⏳ Łączenie...';
+                btn.innerHTML = '⏳ Mikrofon (Krok 1)...';
+                sendCmd('debug', '1. Żądam dostępu do mikrofonu od przeglądarki...');
                 
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
                 
+                btn.innerHTML = '⏳ Łączenie (Krok 2)...';
+                sendCmd('debug', '2. Otrzymano mikrofon. Buduję połączenie (RTCPeerConnection)...');
+
+                peerConnection = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
                 // Wymiana kandydatów sieciowych
@@ -1138,13 +1143,18 @@
                     }
                 };
 
+                btn.innerHTML = '⏳ Zaproszenie (Krok 3)...';
+                sendCmd('debug', '3. Tworzę ofertę WebRTC i wysyłam do Firebase...');
+
                 // Tworzymy zaproszenie do laptopa
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
-                db.ref('webrtc/offer').set({
+                await db.ref('webrtc/offer').set({
                     type: offer.type,
                     sdp: offer.sdp
                 });
+
+                sendCmd('debug', '4. Oferta w bazie. Czekam na odpowiedź (Answer) z laptopa...');
 
                 // Czekamy na odpowiedź z laptopa
                 db.ref('webrtc/answer').off();
@@ -1152,12 +1162,14 @@
                     const answer = snap.val();
                     if (answer && peerConnection && peerConnection.signalingState !== 'stable') {
                         try {
+                            sendCmd('debug', '5. ODEBRANO odpowiedź z laptopa! Paruję...');
                             await peerConnection.setRemoteDescription(new RTCSessionDescription({ type: answer.type, sdp: answer.sdp }));
                             btn.innerHTML = '🔴 MIKROFON NA ŻYWO (Kliknij by wyłączyć)';
                             btn.style.background = '#e53935';
                             if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+                            sendCmd('debug', '6. SUKCES! Mikrofon podłączony.');
                         } catch (err) {
-                            alert("Błąd odbioru sygnału: " + err.message);
+                            sendCmd('debug', 'BŁĄD PAROWANIA: ' + err.message);
                         }
                     }
                 });
@@ -1172,9 +1184,10 @@
                 });
 
             } catch (err) {
-                alert("Brak uprawnień lub błąd: " + err.message);
+                alert("Brak uprawnień lub błąd telefonu: " + err.message);
                 btn.innerHTML = '🎙️ WŁĄCZ MIKROFON (TALKBACK)';
                 btn.style.background = '#ff9800';
+                sendCmd('debug', 'KRYTYCZNY BŁĄD TELEFONU: ' + err.message);
             }
         }
     </script>
