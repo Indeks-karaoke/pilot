@@ -1124,7 +1124,15 @@
                 btn.innerHTML = '⏳ Mikrofon (Krok 1)...';
                 sendCmd('debug', '1. Żądam dostępu do mikrofonu od przeglądarki...');
 
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Żądamy surowego mikrofonu bez sztucznych "upiększaczy" pożerających czas
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false,
+                        latency: 0.0 // Wskazówka dla procesora o priorytecie
+                    } 
+                });
 
                 btn.innerHTML = '⏳ Łączenie (Krok 2)...';
                 sendCmd('debug', '2. Otrzymano mikrofon. Buduję połączenie (RTCPeerConnection)...');
