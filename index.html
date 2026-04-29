@@ -234,7 +234,7 @@
             pointer-events: none;
         }
 
-        /* PRZYCISKI W SIATCE DŹWIĘKÓW (ZMNIEJSZONE) */
+        /* PRZYCISKI W SIATCE DŹWIĘKÓW */
         .sound-grid-btn {
             background: #2a2a2a;
             color: #fff;
@@ -270,7 +270,7 @@
 
 <body>
 
-    <div id="topBar" class="top-bar" style="display: none;">
+    <div id="topBar" class="top-bar">
         <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
         <button id="btnTabSearch" class="top-btn" onclick="toggleTab('search')" title="Wyszukiwarka">🔍</button>
         <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
@@ -358,15 +358,16 @@
                 <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
                 <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1;">-</span>
             </div>
+        </div>
 
-            <div id="konkursControls" style="display: none; width: 100%; margin-top: 30px;">
-                <div class="controls-grid" style="margin: 0;">
-                    <button id="btnPrevK" class="btn" style="padding: 10px 0;" onclick="sendCmd('prev')">⏮️</button>
-                    <button id="btnPlayK" class="btn btn-play" style="padding: 10px 0;"
-                        onclick="sendCmd('play')">▶️</button>
-                    <button id="btnNextK" class="btn" style="padding: 10px 0;" onclick="sendCmd('next')">⏭️</button>
-                </div>
-            </div>
+        <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 20px;">
+            <button class="btn" style="background: #e91e63; font-weight: bold; width: 100%; padding: 20px; font-size: 24px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); text-transform: uppercase;" onclick="sendCmd('start_lottery')">
+                🎉 Losuj Zwycięzcę
+            </button>
+            <div class="label-small" style="margin-top: 25px; text-align: center; color: #bbb;">🏆 Ostatni Zwycięzcy:</div>
+            <ul id="winnersListRemote" style="list-style: none; padding: 0; margin-top: 10px; max-height: 35vh; overflow-y: auto; text-align: left;">
+                <li style="text-align: center; color: #777; padding: 10px;">Czekam na dane...</li>
+            </ul>
         </div>
     </div>
 
@@ -511,7 +512,6 @@
         // =====================================
         // KONFIGURACJA API
         // =====================================
-        // WKLEJ TUTAJ SWÓJ URL Z APPS SCRIPT!
         const APPS_SCRIPT_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzEyimmaojILmadkGvOoGEX0VsSxzucNWAwencvaYxhr_EdhjG1N2Vs0G2q6OZQkLEstw/exec';
 
         const firebaseConfig = {
@@ -556,9 +556,8 @@
         const uiQueue = document.getElementById('uiQueue');
         const nextKaraokeContainer = document.getElementById('nextKaraokeContainer');
         const nextKonkursContainer = document.getElementById('nextKonkursContainer');
-        const topBar = document.getElementById('topBar');
+        const loteriaContainer = document.getElementById('loteriaContainer');
         const autoPlayToggle = document.getElementById('autoPlayToggle');
-        const konkursControls = document.getElementById('konkursControls');
 
         function toggleTab(tabName) {
             const tabs = ['orders', 'search', 'list', 'controls'];
@@ -753,13 +752,12 @@
             uiMode.textContent = data.mode ? `TRYB: ${data.mode.toUpperCase()}` : "";
 
             if (data.mode === 'karaoke') {
-                topBar.style.display = 'flex';
                 uiMain.style.display = 'none';
                 uiSub.textContent = newTitle;
                 uiSub.style.fontSize = '12vw';
                 nextKaraokeContainer.style.display = 'block';
                 nextKonkursContainer.style.display = 'none';
-                konkursControls.style.display = 'none';
+                loteriaContainer.style.display = 'none';
                 uiNext.textContent = data.nextName || "-";
 
                 uiQueue.innerHTML = '';
@@ -773,25 +771,38 @@
                 }
             }
             else if (data.mode === 'konkurs') {
-                topBar.style.display = 'none';
                 uiMain.style.display = 'block';
                 uiMain.textContent = data.konkursIndex || "1";
                 uiSub.textContent = newTitle;
                 uiSub.style.fontSize = '8vw';
                 nextKaraokeContainer.style.display = 'none';
                 nextKonkursContainer.style.display = 'block';
-                konkursControls.style.display = 'block';
+                loteriaContainer.style.display = 'none';
                 document.getElementById('uiNextIdx').textContent = data.nextKonkursIndex || "-";
                 document.getElementById('uiNextName').textContent = data.nextName || "-";
             }
             else if (data.mode === 'loteria') {
-                topBar.style.display = 'none';
                 uiMain.style.display = 'none';
-                uiSub.textContent = "LOTERIA";
+                uiSub.textContent = "LOSOWANIE";
                 uiSub.style.fontSize = '15vw';
                 nextKaraokeContainer.style.display = 'none';
                 nextKonkursContainer.style.display = 'none';
-                konkursControls.style.display = 'none';
+                loteriaContainer.style.display = 'block';
+
+                const winnersList = document.getElementById('winnersListRemote');
+                winnersList.innerHTML = '';
+                if (data.winners && data.winners.length > 0) {
+                    data.winners.forEach(w => {
+                        winnersList.innerHTML += `
+                            <li style="background: #2c2c2c; margin-bottom: 8px; padding: 12px; border-radius: 8px; border-left: 4px solid #e91e63;">
+                                <div style="font-weight: bold; font-size: 18px; color: #fff;">${w.name}</div>
+                                <div style="color: #aaa; font-size: 14px; margin-top: 4px;">Zgłoszenie: <b style="color:#e91e63;">${w.code}</b></div>
+                            </li>
+                        `;
+                    });
+                } else {
+                    winnersList.innerHTML = '<li style="text-align: center; color: #777; padding: 10px;">Brak zwycięzców w tej sesji</li>';
+                }
             }
         });
 
@@ -801,19 +812,15 @@
             if (action === 'play') {
                 isPlaying = !isPlaying;
                 const btnPlay = document.getElementById('btnPlay');
-                const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
-                if (btnPlayK) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
             }
             else if (action === 'close' || action === 'close_tab' || action === 'prev' || action === 'next' || action === 'play_order') {
                 isPlaying = false;
                 const btnPlay = document.getElementById('btnPlay');
-                const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = '▶️';
-                if (btnPlayK) btnPlayK.textContent = '▶️';
             }
 
-            const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext', 'btnPrevK', 'btnPlayK', 'btnNextK'];
+            const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext'];
             if (action === 'prev' || action === 'next' || action === 'play') {
                 buttonsIds.forEach(id => {
                     const btn = document.getElementById(id);
@@ -822,9 +829,7 @@
             }
 
             let targetBtn1 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1));
-            let targetBtn2 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1) + 'K');
             if (targetBtn1) targetBtn1.classList.add('pressed');
-            if (targetBtn2) targetBtn2.classList.add('pressed');
 
             lastCmdTs = Date.now();
 
@@ -850,7 +855,7 @@
         }
 
         function unlockButtons() {
-            ['btnPrev', 'btnPlay', 'btnNext', 'btnPrevK', 'btnPlayK', 'btnNextK'].forEach(id => {
+            ['btnPrev', 'btnPlay', 'btnNext'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) {
                     if (id.includes('Play')) {
@@ -869,9 +874,7 @@
             isPlaying = false;
 
             const btnPlay = document.getElementById('btnPlay');
-            const btnPlayK = document.getElementById('btnPlayK');
             if (btnPlay) btnPlay.textContent = '▶️';
-            if (btnPlayK) btnPlayK.textContent = '▶️';
 
             unlockButtons();
 
@@ -898,20 +901,16 @@
                 btn.textContent = sound.title;
                 btn.onclick = () => {
                     if (currentlyPlayingUrl === sound.url) {
-                        // Drugie kliknięcie podczas grania - zatrzymuje
                         sendCmd('remote_audio', { action: 'stop', timestamp: Date.now() });
                         currentlyPlayingUrl = null;
                         btn.classList.remove('playing');
                     } else {
-                        // Pierwsze kliknięcie - odtwarza
                         sendCmd('remote_audio', { action: 'play', url: sound.url, timestamp: Date.now() });
                         currentlyPlayingUrl = sound.url;
 
-                        // Zresetuj wygląd innych przycisków
                         document.querySelectorAll('.sound-grid-btn').forEach(b => b.classList.remove('playing'));
                         btn.classList.add('playing');
 
-                        // Po 8 sekundach "zapominamy" blokadę dla wygody, by przyciski nie zostały na stałe wcisnięte
                         setTimeout(() => {
                             if (currentlyPlayingUrl === sound.url) {
                                 currentlyPlayingUrl = null;
@@ -1011,20 +1010,17 @@
             const screenRatio = parseFloat(tvAspectStr[0]) / parseFloat(tvAspectStr[1]);
 
             if (imgUrl) {
-                // Skrypt ładuje obrazek w tle, by poznać jego wymiary
                 const img = new Image();
                 img.onload = () => {
                     const imgRatio = img.naturalWidth / img.naturalHeight;
-                    // Skomplikowany ułamek proporcji zamieniony na perfekcyjne dopasowanie
                     let newH = parseInt(wInput.value) * (screenRatio / imgRatio);
-                    newH = Math.max(10, Math.min(100, Math.round(newH))); // Zabezpieczenie przed wyjściem za ekran
+                    newH = Math.max(10, Math.min(100, Math.round(newH)));
                     hInput.value = newH;
                     updateWinPreview();
                     if (navigator.vibrate) navigator.vibrate(20);
                 };
                 img.src = imgUrl;
             } else if (textVal) {
-                // Dla tekstów tworzymy płaski baner dopasowany w 1/3 do swojej szerokości
                 let newH = parseInt(wInput.value) / 3;
                 newH = Math.max(10, Math.min(100, Math.round(newH)));
                 hInput.value = newH;
@@ -1106,7 +1102,6 @@
         async function toggleMic() {
             const btn = document.getElementById('btnMic');
 
-            // WYŁĄCZANIE MIKROFONU
             if (localStream) {
                 localStream.getTracks().forEach(track => track.stop());
                 localStream = null;
@@ -1119,7 +1114,6 @@
                 return;
             }
 
-            // WŁĄCZANIE MIKROFONU
             try {
                 btn.innerHTML = '⏳ Mikrofon (Krok 1)...';
                 sendCmd('debug', '1. Żądam dostępu do mikrofonu od przeglądarki...');
@@ -1158,7 +1152,6 @@
                 });
                 localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
 
-                // Wymiana kandydatów sieciowych
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
                         db.ref('webrtc/pilot_candidates').push({
@@ -1172,7 +1165,6 @@
                 btn.innerHTML = '⏳ Zaproszenie (Krok 3)...';
                 sendCmd('debug', '3. Tworzę ofertę WebRTC i wysyłam do Firebase...');
 
-                // Tworzymy zaproszenie do laptopa
                 const offer = await peerConnection.createOffer();
                 await peerConnection.setLocalDescription(offer);
                 await db.ref('webrtc/offer').set({
@@ -1182,7 +1174,6 @@
 
                 sendCmd('debug', '4. Oferta w bazie. Czekam na odpowiedź (Answer) z laptopa...');
 
-                // Czekamy na odpowiedź z laptopa
                 db.ref('webrtc/answer').off();
                 db.ref('webrtc/answer').on('value', async (snap) => {
                     const answer = snap.val();
@@ -1200,7 +1191,6 @@
                     }
                 });
 
-                // Odbieramy drogi sieciowe laptopa
                 db.ref('webrtc/laptop_candidates').off();
                 db.ref('webrtc/laptop_candidates').on('child_added', (snap) => {
                     const candidate = snap.val();
