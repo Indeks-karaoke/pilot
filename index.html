@@ -120,6 +120,8 @@
         .btn:disabled {
             opacity: 0.4;
             pointer-events: none;
+            background: #222 !important;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -202,6 +204,7 @@
         let isPlaying = false;
         let waitingForSongChange = false;
         let lastSongName = "";
+        let isKonkursEmpty = false; // Zabezpieczenie dla trybu konkursu
 
         const uiMode = document.getElementById('uiMode');
         const uiMain = document.getElementById('uiMainDisplay');
@@ -217,6 +220,9 @@
             if (!data) return;
 
             const newTitle = data.currentName || "Brak utworu";
+            
+            // Logika sprawdzająca czy jest aktywna karta w trybie konkurs
+            isKonkursEmpty = (data.mode === 'konkurs' && (newTitle === "Brak aktywnej karty" || newTitle === "Brak utworu" || newTitle === "-"));
 
             if (waitingForSongChange) {
                 if (newTitle !== lastSongName) {
@@ -287,19 +293,22 @@
         function sendCmd(action, value = null) {
             if (!myPin) { location.reload(); return; }
 
+            // Zabezpieczenie przed wymuszonym odpaleniem play gdy slot jest wolny
+            if (action === 'play' && isKonkursEmpty) return;
+
             if (action === 'play') {
                 isPlaying = !isPlaying;
                 const btnPlay = document.getElementById('btnPlay');
                 const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
-                if (btnPlayK) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
+                if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
             }
             else if (action === 'close' || action === 'prev' || action === 'next') {
                 isPlaying = false;
                 const btnPlay = document.getElementById('btnPlay');
                 const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = '▶️';
-                if (btnPlayK) btnPlayK.textContent = '▶️';
+                if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = '▶️';
             }
 
             const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'];
@@ -343,9 +352,16 @@
             ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) {
-                    if (id.includes('Play') || id.includes('Close')) {
+                    if (id === 'btnPlayK' && isKonkursEmpty) {
+                        btn.disabled = true;
+                        btn.textContent = '-';
+                        btn.classList.remove('pressed');
+                    } else if (id.includes('Play') || id.includes('Close')) {
                         btn.disabled = false;
                         btn.classList.remove('pressed');
+                        if (id === 'btnPlay' || id === 'btnPlayK') {
+                            btn.textContent = isPlaying ? '⏸️' : '▶️';
+                        }
                     } else {
                         btn.disabled = isPlaying;
                         btn.classList.remove('pressed');
@@ -361,7 +377,7 @@
             const btnPlay = document.getElementById('btnPlay');
             const btnPlayK = document.getElementById('btnPlayK');
             if (btnPlay) btnPlay.textContent = '▶️';
-            if (btnPlayK) btnPlayK.textContent = '▶️';
+            if (btnPlayK) btnPlayK.textContent = isKonkursEmpty ? '-' : '▶️';
 
             unlockButtons();
 
