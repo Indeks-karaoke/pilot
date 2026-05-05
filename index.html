@@ -61,8 +61,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
             display: none;
             overflow-y: auto;
-            max-height: calc(100dvh - 160px);
-            padding-bottom: 80px;
+            max-height: 65dvh;
         }
 
         .clickable-item {
@@ -119,6 +118,7 @@
             padding: 15px;
             overflow: hidden;
             transition: all 0.3s ease;
+            touch-action: pan-y;
         }
 
         .mode-label {
@@ -328,6 +328,11 @@
         let waitingForSongChange = false;
         let lastSongName = "";
         let isKonkursEmpty = false; 
+        let currentModeInternal = "karaoke";
+        
+        // Zmienne do gestów
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         const uiMode = document.getElementById('uiMode');
         const uiMain = document.getElementById('uiMainDisplay');
@@ -338,7 +343,30 @@
         const nextKonkursContainer = document.getElementById('nextKonkursContainer');
         const loteriaContainer = document.getElementById('loteriaContainer');
 
-        // --- FUNKCJA DO ZMIANY ZAKŁADEK (POPRAWIONA) ---
+        // --- OBSŁUGA GESTÓW (KARAOKE <-> LOTERIA) ---
+        const statusScreen = document.getElementById('mainStatusScreen');
+        
+        statusScreen.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        statusScreen.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 80;
+            // Sprawdzamy czy był wyraźny gest (w lewo lub w prawo)
+            if (Math.abs(touchEndX - touchStartX) > threshold) {
+                // Wersja Lite przełącza tylko między Karaoke a Loterią
+                let nextMode = currentModeInternal === 'karaoke' ? 'loteria' : 'karaoke';
+                sendCmd('set_mode', nextMode);
+                toggleTab('main'); // Zwijamy panele w razie czego
+            }
+        }
+
+        // --- FUNKCJA DO ZMIANY ZAKŁADEK ---
         function toggleTab(tabName) {
             const tabs = ['orders', 'list'];
             tabs.forEach(t => {
@@ -467,6 +495,9 @@
         db.ref('remote_status').on('value', (snapshot) => {
             const data = snapshot.val();
             if (!data) return;
+
+            // Zapisanie trybu z Firebase by gesty działały w synchronizacji
+            if (data.mode) currentModeInternal = data.mode;
 
             // Aktualizacja listy kart (działa dla Karaoke i Konkursu)
             renderOpenTabsList(data.openTabs || []);
