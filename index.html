@@ -343,8 +343,9 @@
         const nextKonkursContainer = document.getElementById('nextKonkursContainer');
         const loteriaContainer = document.getElementById('loteriaContainer');
 
-        // --- OBSŁUGA GESTÓW (KARAOKE <-> LOTERIA) ---
+        // --- OBSŁUGA GESTÓW (WSZYSTKIE TRYBY) ---
         const statusScreen = document.getElementById('mainStatusScreen');
+        const availableModes = ['karaoke', 'konkurs', 'loteria'];
         
         statusScreen.addEventListener('touchstart', e => {
             touchStartX = e.changedTouches[0].screenX;
@@ -357,12 +358,19 @@
 
         function handleSwipe() {
             const threshold = 80;
-            // Sprawdzamy czy był wyraźny gest (w lewo lub w prawo)
-            if (Math.abs(touchEndX - touchStartX) > threshold) {
-                // Wersja Lite przełącza tylko między Karaoke a Loterią
-                let nextMode = currentModeInternal === 'karaoke' ? 'loteria' : 'karaoke';
+            let currentIndex = availableModes.indexOf(currentModeInternal);
+            if (currentIndex === -1) currentIndex = 0;
+
+            if (touchEndX < touchStartX - threshold) {
+                // Przesunięcie w lewo -> następny tryb
+                let nextMode = availableModes[(currentIndex + 1) % availableModes.length];
                 sendCmd('set_mode', nextMode);
                 toggleTab('main'); // Zwijamy panele w razie czego
+            } else if (touchEndX > touchStartX + threshold) {
+                // Przesunięcie w prawo -> poprzedni tryb
+                let prevMode = availableModes[(currentIndex - 1 + availableModes.length) % availableModes.length];
+                sendCmd('set_mode', prevMode);
+                toggleTab('main'); 
             }
         }
 
@@ -550,7 +558,7 @@
             else if (data.mode === 'loteria') {
                 uiMain.style.display = 'none';
                 uiSub.textContent = "LOSOWANIE";
-                uiSub.style.fontSize = '15vw';
+                uiSub.style.fontSize = '11vw'; // ZMNIEJSZONA CZCIONKA, ABY ZMIEŚCIŁO SIĘ W JEDNEJ LINII
                 nextKaraokeContainer.style.display = 'none';
                 nextKonkursContainer.style.display = 'none';
                 loteriaContainer.style.display = 'block';
