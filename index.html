@@ -22,7 +22,7 @@
             overflow: hidden;
         }
 
-        /* --- NOWE: GÓRNY PASEK ZAKŁADEK I PANELE --- */
+        /* --- GÓRNY PASEK ZAKŁADEK I PANELE --- */
         .top-bar {
             display: flex;
             justify-content: space-between;
@@ -62,7 +62,7 @@
             display: none;
             overflow-y: auto;
             max-height: calc(100dvh - 160px);
-            padding-bottom: 80px; /* Miejsce na przycisk resetu na dole */
+            padding-bottom: 80px;
         }
 
         .clickable-item {
@@ -215,14 +215,13 @@
 
 <body>
 
-    <!-- --- NOWE: PASEK ZAKŁADEK --- -->
+    <!-- --- PASEK ZAKŁADEK --- -->
     <div id="topBar" class="top-bar">
-        <button id="btnTabMain" class="top-btn active" onclick="toggleTab('main')" title="Sterowanie">🎛️</button>
         <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
         <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
     </div>
 
-    <!-- --- NOWE: PANELE SKRZYNKI I KART --- -->
+    <!-- --- PANELE SKRZYNKI I KART --- -->
     <div id="tabOrders" class="panel">
         <div id="ordersListRemote" style="text-align: left;">
             <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Uruchamianie połączenia...</div>
@@ -270,14 +269,14 @@
         </div>
 
         <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 20px;">
-            <!-- NOWY PRZYCISK: OTWÓRZ / ZAMKNIJ EKRAN LOTERII -->
+            <!-- OTWÓRZ / ZAMKNIJ EKRAN LOTERII -->
             <button class="btn"
                 style="background: #9c27b0; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); text-transform: uppercase;"
                 onclick="sendCmd('open_lottery_window')">
                 🖥️ Otwórz / Zamknij Ekran
             </button>
 
-            <!-- NOWY PRZYCISK: POKAŻ EKRAN BEZ LOSOWANIA -->
+            <!-- POKAŻ EKRAN BEZ LOSOWANIA -->
             <button class="btn"
                 style="background: #3f51b5; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(63, 81, 181, 0.4); text-transform: uppercase;"
                 onclick="sendCmd('show_lottery_screen')">
@@ -339,17 +338,17 @@
         const nextKonkursContainer = document.getElementById('nextKonkursContainer');
         const loteriaContainer = document.getElementById('loteriaContainer');
 
-        // --- NOWE: FUNKCJA DO ZMIANY ZAKŁADEK ---
+        // --- FUNKCJA DO ZMIANY ZAKŁADEK (POPRAWIONA) ---
         function toggleTab(tabName) {
-            const tabs = ['main', 'orders', 'list'];
+            const tabs = ['orders', 'list'];
             tabs.forEach(t => {
-                const el = document.getElementById(t === 'main' ? 'mainStatusScreen' : 'tab' + t.charAt(0).toUpperCase() + t.slice(1));
+                const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const btn = document.getElementById('btnTab' + t.charAt(0).toUpperCase() + t.slice(1));
                 
                 if (t === tabName) {
-                    const isVisible = el.style.display !== 'none';
-                    el.style.display = t === 'main' ? 'flex' : 'block';
-                    if (btn) btn.classList.add('active');
+                    const isVisible = el.style.display === 'block';
+                    el.style.display = isVisible ? 'none' : 'block';
+                    if (btn) btn.classList.toggle('active', !isVisible);
 
                     // Odśwież skrzynkę tylko przy jej otwarciu
                     if (tabName === 'orders' && !isVisible) {
@@ -362,7 +361,7 @@
             });
         }
 
-        // --- NOWE: POBIERANIE SKRZYNKI (BEZ TŁA) ---
+        // --- POBIERANIE SKRZYNKI (BEZ TŁA) ---
         async function fetchBackgroundData() {
             if (APPS_SCRIPT_PROXY_URL.includes('Wklej_Tutaj')) return;
 
@@ -418,7 +417,8 @@
                                 sendCmd('play_order', o.tytul);
                                 card.style.background = '#1b5e20';
                                 card.innerHTML = `<div class="order-title" style="color: #fff; font-weight: 900;">Wysyłanie...</div>`;
-                                setTimeout(() => { toggleTab('main'); }, 600);
+                                // Zamknięcie panelu po wybraniu
+                                setTimeout(() => { toggleTab('orders'); }, 600);
                             };
                             
                             list.appendChild(card);
@@ -432,7 +432,7 @@
             }
         }
 
-        // --- NOWE: RENDEROWANIE OTWARTYCH KART ---
+        // --- RENDEROWANIE OTWARTYCH KART ---
         function renderOpenTabsList(tabs) {
             const container = document.getElementById('openTabsContainer');
             if (!container) return;
