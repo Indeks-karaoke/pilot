@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pilot Lite - Karaoke</title>
+    <!-- FIREBASE SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-auth-compat.js"></script>
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -20,6 +22,80 @@
             height: 100dvh;
             box-sizing: border-box;
             overflow: hidden;
+        }
+
+        /* EKRAN LOGOWANIA */
+        #loginScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #121212;
+            z-index: 100000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .login-box {
+            background: #1a1a1a;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            border: 1px solid #333;
+            text-align: center;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .login-box h2 {
+            color: #bb86fc;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            background: #2c2c2c;
+            border: 2px solid #444;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            text-align: center;
+            margin-bottom: 15px;
+            outline: none;
+        }
+
+        .login-box input:focus {
+            border-color: #bb86fc;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            background: #bb86fc;
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 10px;
+        }
+
+        .login-box button:active {
+            background: #9965f4;
+            transform: scale(0.95);
+        }
+
+        .login-box button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         /* --- GÓRNY PASEK ZAKŁADEK I PANELE --- */
@@ -51,6 +127,12 @@
         .top-btn.active {
             background: #4CAF50;
             border-color: #4CAF50;
+        }
+
+        .logout-btn {
+            background: #b71c1c;
+            border-color: #b71c1c;
+            max-width: 50px;
         }
 
         .panel {
@@ -106,6 +188,7 @@
             opacity: 0.2;
             pointer-events: none;
         }
+
         /* ------------------------------------------ */
 
         .status-display {
@@ -178,8 +261,13 @@
             max-width: 500px;
         }
 
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        .grid-3 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
 
         .btn {
             background: #333;
@@ -193,11 +281,18 @@
             justify-content: center;
             transition: 0.1s;
             cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
         }
 
-        .btn-play { background: #455a64; font-size: 34px; }
-        .btn-close-tab { background: #b71c1c; font-size: 24px; }
+        .btn-play {
+            background: #455a64;
+            font-size: 34px;
+        }
+
+        .btn-close-tab {
+            background: #b71c1c;
+            font-size: 24px;
+        }
 
         .btn.pressed {
             background: #e53935 !important;
@@ -215,97 +310,104 @@
 
 <body>
 
-    <!-- --- PASEK ZAKŁADEK --- -->
-    <div id="topBar" class="top-bar">
-        <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
-        <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
-    </div>
-
-    <!-- --- PANELE SKRZYNKI I KART --- -->
-    <div id="tabOrders" class="panel">
-        <div id="ordersListRemote" style="text-align: left;">
-            <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Uruchamianie połączenia...</div>
+    <!-- EKRAN LOGOWANIA -->
+    <div id="loginScreen">
+        <div class="login-box">
+            <h2>Pilot DJ'a (Lite)</h2>
+            <input type="email" id="djEmailInput" placeholder="E-mail DJ-a" autocomplete="username">
+            <input type="password" id="djPasswordInput" placeholder="Hasło" autocomplete="current-password">
+            <button id="loginBtn" onclick="loginDJ()">Zaloguj się</button>
+            <div id="loginError" style="color: #ff5252; margin-top: 15px; font-size: 14px; display: none;">Błędny e-mail
+                lub hasło!</div>
         </div>
     </div>
 
-    <div id="tabList" class="panel">
-        <div id="openTabsContainer" style="text-align: left;">
-            <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Oczekiwanie na dane z przeglądarki...</div>
+    <!-- INTERFEJS LITE -->
+    <div id="appInterface" style="display: none; flex-direction: column; height: 100%;">
+        <div id="topBar" class="top-bar">
+            <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
+            <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
+            <button class="top-btn logout-btn" onclick="logoutDJ()" title="Wyloguj się">🚪</button>
         </div>
-    </div>
-    <!-- ------------------------------------ -->
 
-    <div class="status-display" id="mainStatusScreen">
-        <div id="uiMode" class="mode-label">Inicjalizacja...</div>
-        <div id="uiMainDisplay" class="big-number">-</div>
-        <div id="uiSubDisplay" class="huge-title">Czekam na dane</div>
-
-        <div id="nextKaraokeContainer" style="display: none; width: 100%;">
-            <div class="label-small">Następnie:</div>
-            <div id="uiNext" class="next-song">-</div>
-            <div class="label-small">W kolejce:</div>
-            <div id="uiQueue" style="margin-top:5px; margin-bottom: 15px;"></div>
-            
-            <div class="controls-grid grid-4" style="margin: 20px auto 0 auto;">
-                <button id="btnPrev" class="btn" onclick="sendCmd('prev')">⏮️</button>
-                <button id="btnPlay" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
-                <button id="btnNext" class="btn" onclick="sendCmd('next')">⏭️</button>
-                <button id="btnClose" class="btn btn-close-tab" onclick="sendCmd('close')" title="Zamknij Kartę">✖</button>
+        <div id="tabOrders" class="panel">
+            <div id="ordersListRemote" style="text-align: left;">
+                <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Czekam na zamówienia...</div>
             </div>
         </div>
 
-        <div id="nextKonkursContainer" style="display: none; margin-top: 20px; border-top: 1px solid #333; width: 100%; padding-top: 10px;">
-            <div class="label-small">Następny w kolejce:</div>
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px;">
-                <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
-                <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1;">-</span>
-            </div>
-
-            <div class="controls-grid grid-3" style="margin: 30px auto 0 auto;">
-                <button id="btnPrevK" class="btn" onclick="sendCmd('prev')">⏮️</button>
-                <button id="btnPlayK" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
-                <button id="btnNextK" class="btn" onclick="sendCmd('next')">⏭️</button>
+        <div id="tabList" class="panel">
+            <div id="openTabsContainer" style="text-align: left;">
+                <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Oczekiwanie na dane z przeglądarki...
+                </div>
             </div>
         </div>
 
-        <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 20px;">
-            <!-- OTWÓRZ / ZAMKNIJ EKRAN LOTERII -->
-            <button class="btn"
-                style="background: #9c27b0; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); text-transform: uppercase;"
-                onclick="sendCmd('open_lottery_window')">
-                🖥️ Otwórz / Zamknij Ekran
-            </button>
+        <div class="status-display" id="mainStatusScreen">
+            <div id="uiMode" class="mode-label">Inicjalizacja...</div>
+            <div id="uiMainDisplay" class="big-number">-</div>
+            <div id="uiSubDisplay" class="huge-title">Czekam na dane</div>
 
-            <!-- POKAŻ EKRAN BEZ LOSOWANIA -->
-            <button class="btn"
-                style="background: #3f51b5; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(63, 81, 181, 0.4); text-transform: uppercase;"
-                onclick="sendCmd('show_lottery_screen')">
-                📺 Wyślij na ekran (bez losowania)
-            </button>
+            <div id="nextKaraokeContainer" style="display: none; width: 100%;">
+                <div class="label-small">Następnie:</div>
+                <div id="uiNext" class="next-song">-</div>
+                <div class="label-small">W kolejce:</div>
+                <div id="uiQueue" style="margin-top:5px; margin-bottom: 15px;"></div>
 
-            <button class="btn" style="background: #e91e63; font-weight: bold; width: 100%; padding: 20px; font-size: 24px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); text-transform: uppercase;" onclick="sendCmd('start_lottery')">
-                🎉 Losuj Zwycięzcę
-            </button>
-            <div class="label-small" style="margin-top: 25px; text-align: center; color: #bbb;">🏆 Ostatni Zwycięzcy:</div>
-            <ul id="winnersListRemote" style="list-style: none; padding: 0; margin-top: 10px; max-height: 35dvh; overflow-y: auto; text-align: left;">
-                <li style="text-align: center; color: #777; padding: 10px;">Czekam na dane...</li>
-            </ul>
+                <div class="controls-grid grid-4" style="margin: 20px auto 0 auto;">
+                    <button id="btnPrev" class="btn" onclick="sendCmd('prev')">⏮️</button>
+                    <button id="btnPlay" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
+                    <button id="btnNext" class="btn" onclick="sendCmd('next')">⏭️</button>
+                    <button id="btnClose" class="btn btn-close-tab" onclick="sendCmd('close')"
+                        title="Zamknij Kartę">✖</button>
+                </div>
+            </div>
+
+            <div id="nextKonkursContainer"
+                style="display: none; margin-top: 20px; border-top: 1px solid #333; width: 100%; padding-top: 10px;">
+                <div class="label-small">Następny w kolejce:</div>
+                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px;">
+                    <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
+                    <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1;">-</span>
+                </div>
+
+                <div class="controls-grid grid-3" style="margin: 30px auto 0 auto;">
+                    <button id="btnPrevK" class="btn" onclick="sendCmd('prev')">⏮️</button>
+                    <button id="btnPlayK" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
+                    <button id="btnNextK" class="btn" onclick="sendCmd('next')">⏭️</button>
+                </div>
+            </div>
+
+            <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 20px;">
+                <button class="btn"
+                    style="background: #9c27b0; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); text-transform: uppercase;"
+                    onclick="sendCmd('open_lottery_window')">🖥️ Otwórz / Zamknij Ekran</button>
+                <button class="btn"
+                    style="background: #3f51b5; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(63, 81, 181, 0.4); text-transform: uppercase;"
+                    onclick="sendCmd('show_lottery_screen')">📺 Wyślij na ekran (bez losowania)</button>
+                <button class="btn"
+                    style="background: #e91e63; font-weight: bold; width: 100%; padding: 20px; font-size: 24px; box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4); text-transform: uppercase;"
+                    onclick="sendCmd('start_lottery')">🎉 Losuj Zwycięzcę</button>
+                <div class="label-small" style="margin-top: 25px; text-align: center; color: #bbb;">🏆 Ostatni
+                    Zwycięzcy:</div>
+                <ul id="winnersListRemote"
+                    style="list-style: none; padding: 0; margin-top: 10px; max-height: 35dvh; overflow-y: auto; text-align: left;">
+                    <li style="text-align: center; color: #777; padding: 10px;">Czekam na dane...</li>
+                </ul>
+            </div>
         </div>
-    </div>
 
-    <div style="position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: center; z-index: 9999;">
-        <button onclick="forceUnlockUI()" title="Odblokuj przyciski i wymuś zresetowanie blokady"
-            style="width:100%; max-width: 250px; background: rgba(34, 34, 34, 0.85); border: 1px solid #555; color: #ccc; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-            🔄 Reset UI
-        </button>
+        <div
+            style="position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: center; z-index: 9999;">
+            <button onclick="forceUnlockUI()" title="Odblokuj przyciski i wymuś zresetowanie blokady"
+                style="width:100%; max-width: 250px; background: rgba(34, 34, 34, 0.85); border: 1px solid #555; color: #ccc; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
+                🔄 Reset UI
+            </button>
+        </div>
     </div>
 
     <script>
-        // =====================================
-        // KONFIGURACJA API I ZMIENNE
-        // =====================================
-        const APPS_SCRIPT_PROXY_URL = 'https://script.google.com/macros/s/AKfycbzEyimmaojILmadkGvOoGEX0VsSxzucNWAwencvaYxhr_EdhjG1N2Vs0G2q6OZQkLEstw/exec';
-
+        // --- KONFIGURACJA FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDBjS0W8W6iwy3i3yaVVCyMF-FimS1VzH4",
             authDomain: "indeks-karaoke.firebaseapp.com",
@@ -315,46 +417,75 @@
             messagingSenderId: "870801348066",
             appId: "1:870801348066:web:1eb45469e18a2ea45e15bb"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const auth = firebase.auth();
 
-        let myPin = localStorage.getItem('dj_pin') || prompt("🔒 Podaj PIN DJ-a:");
-        if (myPin) localStorage.setItem('dj_pin', myPin);
+        let appInitialized = false;
 
-        let lastCmdTs = 0;
-        let unlockTimeout = null;
-        let isPlaying = false;
-        let waitingForSongChange = false;
-        let lastSongName = "";
-        let isKonkursEmpty = false; 
-        let currentModeInternal = "karaoke";
-        
-        // Zmienne do gestów
-        let touchStartX = 0;
-        let touchEndX = 0;
+        // Nasłuchiwanie zmian stanu logowania
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('appInterface').style.display = 'flex';
+                if (!appInitialized) {
+                    initApp();
+                    appInitialized = true;
+                }
+            } else {
+                document.getElementById('loginScreen').style.display = 'flex';
+                document.getElementById('appInterface').style.display = 'none';
+                appInitialized = false;
+            }
+        });
 
-        const uiMode = document.getElementById('uiMode');
-        const uiMain = document.getElementById('uiMainDisplay');
-        const uiSub = document.getElementById('uiSubDisplay');
-        const uiNext = document.getElementById('uiNext');
-        const uiQueue = document.getElementById('uiQueue');
-        const nextKaraokeContainer = document.getElementById('nextKaraokeContainer');
-        const nextKonkursContainer = document.getElementById('nextKonkursContainer');
-        const loteriaContainer = document.getElementById('loteriaContainer');
+        // Funkcja logowania e-mailem i hasłem
+        async function loginDJ() {
+            const email = document.getElementById('djEmailInput').value.trim();
+            const pass = document.getElementById('djPasswordInput').value;
+            const errorDiv = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
 
-        // --- OBSŁUGA GESTÓW (WSZYSTKIE TRYBY) ---
+            if (!email || !pass) return;
+
+            btn.disabled = true;
+            btn.textContent = "Logowanie...";
+            errorDiv.style.display = "none";
+
+            try {
+                await auth.signInWithEmailAndPassword(email, pass);
+                btn.disabled = false;
+                btn.textContent = "Zaloguj się";
+            } catch (err) {
+                errorDiv.style.display = "block";
+                btn.disabled = false;
+                btn.textContent = "Zaloguj się";
+                console.error(err);
+            }
+        }
+
+        // Funkcja wylogowywania
+        function logoutDJ() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+
+        let lastCmdTs = 0; let unlockTimeout = null; let isPlaying = false; let waitingForSongChange = false;
+        let lastSongName = ""; let isKonkursEmpty = false; let currentModeInternal = "karaoke";
+
+        let touchStartX = 0; let touchEndX = 0;
+
+        const uiMode = document.getElementById('uiMode'); const uiMain = document.getElementById('uiMainDisplay');
+        const uiSub = document.getElementById('uiSubDisplay'); const uiNext = document.getElementById('uiNext');
+        const uiQueue = document.getElementById('uiQueue'); const nextKaraokeContainer = document.getElementById('nextKaraokeContainer');
+        const nextKonkursContainer = document.getElementById('nextKonkursContainer'); const loteriaContainer = document.getElementById('loteriaContainer');
+
         const statusScreen = document.getElementById('mainStatusScreen');
         const availableModes = ['karaoke', 'konkurs', 'loteria'];
-        
-        statusScreen.addEventListener('touchstart', e => {
-            touchStartX = e.changedTouches[0].screenX;
-        }, { passive: true });
 
-        statusScreen.addEventListener('touchend', e => {
-            touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
-        });
+        statusScreen.addEventListener('touchstart', e => touchStartX = e.changedTouches[0].screenX, { passive: true });
+        statusScreen.addEventListener('touchend', e => { touchEndX = e.changedTouches[0].screenX; handleSwipe(); });
 
         function handleSwipe() {
             const threshold = 80;
@@ -362,34 +493,23 @@
             if (currentIndex === -1) currentIndex = 0;
 
             if (touchEndX < touchStartX - threshold) {
-                // Przesunięcie w lewo -> następny tryb
                 let nextMode = availableModes[(currentIndex + 1) % availableModes.length];
-                sendCmd('set_mode', nextMode);
-                toggleTab('main'); // Zwijamy panele w razie czego
+                sendCmd('set_mode', nextMode); toggleTab('main');
             } else if (touchEndX > touchStartX + threshold) {
-                // Przesunięcie w prawo -> poprzedni tryb
                 let prevMode = availableModes[(currentIndex - 1 + availableModes.length) % availableModes.length];
-                sendCmd('set_mode', prevMode);
-                toggleTab('main'); 
+                sendCmd('set_mode', prevMode); toggleTab('main');
             }
         }
 
-        // --- FUNKCJA DO ZMIANY ZAKŁADEK ---
         function toggleTab(tabName) {
             const tabs = ['orders', 'list'];
             tabs.forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const btn = document.getElementById('btnTab' + t.charAt(0).toUpperCase() + t.slice(1));
-                
                 if (t === tabName) {
                     const isVisible = el.style.display === 'block';
                     el.style.display = isVisible ? 'none' : 'block';
                     if (btn) btn.classList.toggle('active', !isVisible);
-
-                    // Odśwież skrzynkę tylko przy jej otwarciu
-                    if (tabName === 'orders' && !isVisible) {
-                        fetchBackgroundData();
-                    }
                 } else {
                     if (el) el.style.display = 'none';
                     if (btn) btn.classList.remove('active');
@@ -397,85 +517,117 @@
             });
         }
 
-        // --- POBIERANIE SKRZYNKI (BEZ TŁA) ---
-        async function fetchBackgroundData() {
-            if (APPS_SCRIPT_PROXY_URL.includes('Wklej_Tutaj')) return;
+        function initApp() {
+            // Nasłuchiwanie Zamówień
+            db.ref('zamowienia').on('value', snap => {
+                const data = snap.val() || {};
+                const list = document.getElementById('ordersListRemote');
+                const now = Date.now();
+                const eightHoursInMs = 8 * 60 * 60 * 1000;
+                let uniqueOrders = {};
 
-            const list = document.getElementById('ordersListRemote');
-            if (list && list.parentElement.style.display === 'block') {
-                list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">⏳ Odświeżanie zamówień...</div>';
-            }
-
-            try {
-                const res = await fetch(APPS_SCRIPT_PROXY_URL);
-                const gist = await res.json();
-                if (gist.error) throw new Error(gist.error);
-
-                if (gist.files['zamowienia.json']) {
-                    const data = JSON.parse(gist.files['zamowienia.json'].content);
-                    const now = Date.now();
-                    const eightHoursInMs = 8 * 60 * 60 * 1000;
-
-                    let uniqueOrders = {};
-                    data.forEach(o => {
-                        // Limit 8 godzin, dopuszczamy też zagrane utwory
-                        if ((now - (o.id || o.timestamp)) <= eightHoursInMs) {
-                            let key = o.tytul.toLowerCase().trim();
-                            if (!uniqueOrders[key] || !o.zagrane) {
-                                uniqueOrders[key] = o;
-                            }
+                Object.keys(data).forEach(key => {
+                    let o = data[key];
+                    o.id = key;
+                    if ((now - o.timestamp) <= eightHoursInMs) {
+                        let lowerTitle = o.tytul.toLowerCase().trim();
+                        if (!uniqueOrders[lowerTitle] || !o.zagrane) {
+                            uniqueOrders[lowerTitle] = o;
                         }
+                    }
+                });
+
+                if (list) {
+                    list.innerHTML = '';
+                    let orderCount = 0;
+                    Object.values(uniqueOrders).forEach(o => {
+                        orderCount++;
+                        const card = document.createElement('div');
+                        card.className = 'clickable-item interactive';
+                        const isPlayed = o.zagrane === true;
+                        card.style.background = isPlayed ? '#fbc02d' : '#ffffff';
+                        card.style.border = isPlayed ? '2px solid #f57f17' : '2px solid #ccc';
+                        card.style.color = '#000000';
+                        const nat = o.narodowosc ? ` | 🌍 ${o.narodowosc}` : '';
+
+                        card.innerHTML = `
+                            <div class="order-title" style="color: #000; font-weight: 900;">${o.tytul}</div>
+                            <span class="order-singer" style="color: #444; font-weight: bold;">🎤 ${o.imie || 'Wybór własny'}${nat}</span>
+                        `;
+
+                        card.onclick = () => {
+                            sendCmd('play_order', o.tytul);
+                            card.style.background = '#1b5e20';
+                            card.innerHTML = `<div class="order-title" style="color: #fff; font-weight: 900;">Wysyłanie...</div>`;
+                            setTimeout(() => { toggleTab('orders'); }, 600);
+                        };
+                        list.appendChild(card);
                     });
+                    if (orderCount === 0) list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">📭 Brak zamówień z ostatnich 8 godzin.</div>';
+                }
+            });
 
-                    if (list) {
-                        list.innerHTML = '';
-                        let orderCount = 0;
+            // Odbiór statusu od DJ'a
+            db.ref('remote_status').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
 
-                        Object.values(uniqueOrders).forEach(o => {
-                            orderCount++;
-                            const card = document.createElement('div');
-                            card.className = 'clickable-item interactive';
-                            
-                            // Żółte tło dla zagranych, białe dla nowych
-                            const isPlayed = o.zagrane === true;
-                            card.style.background = isPlayed ? '#fbc02d' : '#ffffff'; 
-                            card.style.border = isPlayed ? '2px solid #f57f17' : '2px solid #ccc';
-                            card.style.color = '#000000';
+                if (data.mode) currentModeInternal = data.mode;
+                renderOpenTabsList(data.openTabs || []);
 
-                            const nat = o.narodowosc ? ` | 🌍 ${o.narodowosc}` : '';
+                const newTitle = data.currentName || "Brak utworu";
+                isKonkursEmpty = (data.mode === 'konkurs' && (newTitle === "Brak aktywnej karty" || newTitle === "Brak utworu" || newTitle === "-"));
 
-                            card.innerHTML = `
-                                <div class="order-title" style="color: #000; font-weight: 900;">${o.tytul}</div>
-                                <span class="order-singer" style="color: #444; font-weight: bold;">🎤 ${o.imie || 'Wybór własny'}${nat}</span>
-                            `;
-                            
-                            card.onclick = () => {
-                                sendCmd('play_order', o.tytul);
-                                card.style.background = '#1b5e20';
-                                card.innerHTML = `<div class="order-title" style="color: #fff; font-weight: 900;">Wysyłanie...</div>`;
-                                // Zamknięcie panelu po wybraniu
-                                setTimeout(() => { toggleTab('orders'); }, 600);
-                            };
-                            
-                            list.appendChild(card);
+                if (waitingForSongChange) {
+                    if (newTitle !== lastSongName) { waitingForSongChange = false; unlockButtons(); }
+                } else if (data.lastAckTs && data.lastAckTs === lastCmdTs) {
+                    unlockButtons();
+                }
+
+                uiMode.textContent = data.mode ? `TRYB: ${data.mode.toUpperCase()}` : "";
+
+                if (data.mode === 'karaoke') {
+                    uiMain.style.display = 'none'; uiSub.textContent = newTitle; uiSub.style.fontSize = '12vw';
+                    nextKaraokeContainer.style.display = 'block'; nextKonkursContainer.style.display = 'none'; loteriaContainer.style.display = 'none';
+                    uiNext.textContent = data.nextName || "-";
+                    uiQueue.innerHTML = '';
+                    if (data.queueList) {
+                        data.queueList.forEach(song => {
+                            const div = document.createElement('div'); div.className = 'queue-item'; div.textContent = song; uiQueue.appendChild(div);
                         });
-
-                        if (orderCount === 0) list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">📭 Brak zamówień z ostatnich 8 godzin.</div>';
                     }
                 }
-            } catch (e) {
-                if (list) list.innerHTML = '<div style="text-align: center; color: #f44336; padding: 20px;">❌ Błąd pobierania danych.</div>';
-            }
-        }
+                else if (data.mode === 'konkurs') {
+                    uiMain.style.display = 'block'; uiMain.textContent = data.konkursIndex || "1";
+                    uiSub.textContent = newTitle; uiSub.style.fontSize = '8vw';
+                    nextKaraokeContainer.style.display = 'none'; nextKonkursContainer.style.display = 'block'; loteriaContainer.style.display = 'none';
+                    document.getElementById('uiNextIdx').textContent = data.nextKonkursIndex || "-";
+                    document.getElementById('uiNextName').textContent = data.nextName || "-";
+                }
+                else if (data.mode === 'loteria') {
+                    uiMain.style.display = 'none'; uiSub.textContent = "LOSOWANIE"; uiSub.style.fontSize = '11vw';
+                    nextKaraokeContainer.style.display = 'none'; nextKonkursContainer.style.display = 'none'; loteriaContainer.style.display = 'block';
 
-        // --- RENDEROWANIE OTWARTYCH KART ---
+                    const winnersList = document.getElementById('winnersListRemote'); winnersList.innerHTML = '';
+                    if (data.winners && data.winners.length > 0) {
+                        data.winners.forEach(w => {
+                            winnersList.innerHTML += `
+                                <li style="background: #2c2c2c; margin-bottom: 8px; padding: 12px; border-radius: 8px; border-left: 4px solid #e91e63;">
+                                    <div style="font-weight: bold; font-size: 18px; color: #fff;">${w.name}</div>
+                                    <div style="color: #aaa; font-size: 14px; margin-top: 4px;">Zgłoszenie: <b style="color:#e91e63;">${w.code}</b></div>
+                                </li>`;
+                        });
+                    } else {
+                        winnersList.innerHTML = '<li style="text-align: center; color: #777; padding: 10px;">Brak zwycięzców w tej sesji</li>';
+                    }
+                }
+            });
+        } // End initApp
+
         function renderOpenTabsList(tabs) {
             const container = document.getElementById('openTabsContainer');
             if (!container) return;
-            if (!tabs || tabs.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Brak otwartych kart z muzyką.</div>';
-                return;
-            }
+            if (!tabs || tabs.length === 0) { container.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Brak otwartych kart z muzyką.</div>'; return; }
 
             let html = '';
             tabs.forEach((t, i) => {
@@ -485,9 +637,7 @@
                         <button class="tiny-btn" onclick="sendCmd('move_tab', {id: ${t.id}, dir: -1})" ${i === 0 ? 'disabled' : ''} title="Wyżej">▲</button>
                         <button class="tiny-btn" onclick="sendCmd('move_tab', {id: ${t.id}, dir: 1})" ${i === tabs.length - 1 ? 'disabled' : ''} title="Niżej">▼</button>
                     </div>
-                    <div style="flex:1; word-break: break-word; white-space: normal; font-size:13px; font-weight:bold; line-height: 1.2;">
-                        ${t.title}
-                    </div>
+                    <div style="flex:1; word-break: break-word; white-space: normal; font-size:13px; font-weight:bold; line-height: 1.2;">${t.title}</div>
                     <button class="tiny-btn" style="background:#4CAF50; padding:10px 10px; font-size:16px;" onclick="sendCmd('move_tab_top', ${t.id})" ${i === 0 ? 'disabled' : ''} title="Przesuń na samą górę">⏫</button>
                     <button style="background:#d32f2f; border:none; color:white; padding:10px 12px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="sendCmd('close_tab', ${t.id})" title="Zamknij">✖</button>
                 </div>`;
@@ -495,144 +645,44 @@
             container.innerHTML = html;
         }
 
-        fetchBackgroundData(); // Pobranie 1 raz przy uruchomieniu pilota
-
-        // =====================================
-        // GŁÓWNA LOGIKA FIREBASE
-        // =====================================
-        db.ref('remote_status').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            // Zapisanie trybu z Firebase by gesty działały w synchronizacji
-            if (data.mode) currentModeInternal = data.mode;
-
-            // Aktualizacja listy kart (działa dla Karaoke i Konkursu)
-            renderOpenTabsList(data.openTabs || []);
-
-            const newTitle = data.currentName || "Brak utworu";
-            
-            isKonkursEmpty = (data.mode === 'konkurs' && (newTitle === "Brak aktywnej karty" || newTitle === "Brak utworu" || newTitle === "-"));
-
-            if (waitingForSongChange) {
-                if (newTitle !== lastSongName) {
-                    waitingForSongChange = false;
-                    unlockButtons();
-                }
-            } else if (data.lastAckTs && data.lastAckTs === lastCmdTs) {
-                unlockButtons();
-            }
-
-            uiMode.textContent = data.mode ? `TRYB: ${data.mode.toUpperCase()}` : "";
-
-            if (data.mode === 'karaoke') {
-                uiMain.style.display = 'none';
-                uiSub.textContent = newTitle;
-                uiSub.style.fontSize = '12vw';
-                nextKaraokeContainer.style.display = 'block';
-                nextKonkursContainer.style.display = 'none';
-                loteriaContainer.style.display = 'none';
-                uiNext.textContent = data.nextName || "-";
-
-                uiQueue.innerHTML = '';
-                if (data.queueList) {
-                    data.queueList.forEach(song => {
-                        const div = document.createElement('div');
-                        div.className = 'queue-item';
-                        div.textContent = song;
-                        uiQueue.appendChild(div);
-                    });
-                }
-            }
-            else if (data.mode === 'konkurs') {
-                uiMain.style.display = 'block';
-                uiMain.textContent = data.konkursIndex || "1";
-                uiSub.textContent = newTitle;
-                uiSub.style.fontSize = '8vw';
-                nextKaraokeContainer.style.display = 'none';
-                nextKonkursContainer.style.display = 'block';
-                loteriaContainer.style.display = 'none';
-                document.getElementById('uiNextIdx').textContent = data.nextKonkursIndex || "-";
-                document.getElementById('uiNextName').textContent = data.nextName || "-";
-            }
-            else if (data.mode === 'loteria') {
-                uiMain.style.display = 'none';
-                uiSub.textContent = "LOSOWANIE";
-                uiSub.style.fontSize = '11vw'; // ZMNIEJSZONA CZCIONKA, ABY ZMIEŚCIŁO SIĘ W JEDNEJ LINII
-                nextKaraokeContainer.style.display = 'none';
-                nextKonkursContainer.style.display = 'none';
-                loteriaContainer.style.display = 'block';
-
-                const winnersList = document.getElementById('winnersListRemote');
-                winnersList.innerHTML = '';
-                if (data.winners && data.winners.length > 0) {
-                    data.winners.forEach(w => {
-                        winnersList.innerHTML += `
-                            <li style="background: #2c2c2c; margin-bottom: 8px; padding: 12px; border-radius: 8px; border-left: 4px solid #e91e63;">
-                                <div style="font-weight: bold; font-size: 18px; color: #fff;">${w.name}</div>
-                                <div style="color: #aaa; font-size: 14px; margin-top: 4px;">Zgłoszenie: <b style="color:#e91e63;">${w.code}</b></div>
-                            </li>
-                        `;
-                    });
-                } else {
-                    winnersList.innerHTML = '<li style="text-align: center; color: #777; padding: 10px;">Brak zwycięzców w tej sesji</li>';
-                }
-            }
-        });
-
         function sendCmd(action, value = null) {
-            if (!myPin) { location.reload(); return; }
+            const user = auth.currentUser;
+            if (!user) { location.reload(); return; }
 
             if (action === 'play' && isKonkursEmpty) return;
 
             if (action === 'play') {
                 isPlaying = !isPlaying;
-                const btnPlay = document.getElementById('btnPlay');
-                const btnPlayK = document.getElementById('btnPlayK');
+                const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
                 if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
             }
             else if (action === 'close' || action === 'prev' || action === 'next' || action === 'play_order') {
                 isPlaying = false;
-                const btnPlay = document.getElementById('btnPlay');
-                const btnPlayK = document.getElementById('btnPlayK');
+                const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = '▶️';
                 if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = '▶️';
             }
 
             const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'];
             if (action === 'prev' || action === 'next' || action === 'play' || action === 'close') {
-                buttonsIds.forEach(id => {
-                    const btn = document.getElementById(id);
-                    if (btn) btn.disabled = true;
-                });
+                buttonsIds.forEach(id => { const btn = document.getElementById(id); if (btn) btn.disabled = true; });
             }
 
             let targetBtn1 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1));
             let targetBtn2 = document.getElementById('btn' + action.charAt(0).toUpperCase() + action.slice(1) + 'K');
-            if (targetBtn1) targetBtn1.classList.add('pressed');
-            if (targetBtn2) targetBtn2.classList.add('pressed');
+            if (targetBtn1) targetBtn1.classList.add('pressed'); if (targetBtn2) targetBtn2.classList.add('pressed');
 
             lastCmdTs = Date.now();
 
             if (action === 'prev' || action === 'next' || action === 'play_order') {
-                waitingForSongChange = true;
-                lastSongName = uiSub.textContent;
-
-                clearTimeout(unlockTimeout);
-                unlockTimeout = setTimeout(() => {
-                    waitingForSongChange = false;
-                    unlockButtons();
-                }, 4000);
+                waitingForSongChange = true; lastSongName = uiSub.textContent;
+                clearTimeout(unlockTimeout); unlockTimeout = setTimeout(() => { waitingForSongChange = false; unlockButtons(); }, 4000);
             } else {
-                waitingForSongChange = false;
-                clearTimeout(unlockTimeout);
-                unlockTimeout = setTimeout(unlockButtons, 1500);
+                waitingForSongChange = false; clearTimeout(unlockTimeout); unlockTimeout = setTimeout(unlockButtons, 1500);
             }
 
-            db.ref('remote_cmd').set({ action: action, value: value, pin: myPin, ts: lastCmdTs })
-                .catch(e => { localStorage.removeItem('dj_pin'); location.reload(); });
-
+            db.ref('remote_cmd').set({ action: action, value: value, dj: user.email, ts: lastCmdTs }).catch(e => { console.error(e); });
             if (navigator.vibrate) navigator.vibrate(40);
         }
 
@@ -640,36 +690,20 @@
             ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) {
-                    if (id === 'btnPlayK' && isKonkursEmpty) {
-                        btn.disabled = true;
-                        btn.textContent = '-';
-                        btn.classList.remove('pressed');
-                    } else if (id.includes('Play') || id.includes('Close')) {
-                        btn.disabled = false;
-                        btn.classList.remove('pressed');
-                        if (id === 'btnPlay' || id === 'btnPlayK') {
-                            btn.textContent = isPlaying ? '⏸️' : '▶️';
-                        }
-                    } else {
-                        btn.disabled = isPlaying;
-                        btn.classList.remove('pressed');
-                    }
+                    if (id === 'btnPlayK' && isKonkursEmpty) { btn.disabled = true; btn.textContent = '-'; btn.classList.remove('pressed'); }
+                    else if (id.includes('Play') || id.includes('Close')) {
+                        btn.disabled = false; btn.classList.remove('pressed');
+                        if (id === 'btnPlay' || id === 'btnPlayK') { btn.textContent = isPlaying ? '⏸️' : '▶️'; }
+                    } else { btn.disabled = isPlaying; btn.classList.remove('pressed'); }
                 }
             });
         }
 
         function forceUnlockUI() {
-            waitingForSongChange = false;
-            isPlaying = false;
-
-            const btnPlay = document.getElementById('btnPlay');
-            const btnPlayK = document.getElementById('btnPlayK');
-            if (btnPlay) btnPlay.textContent = '▶️';
-            if (btnPlayK) btnPlayK.textContent = isKonkursEmpty ? '-' : '▶️';
-
-            unlockButtons();
-
-            if (navigator.vibrate) navigator.vibrate(20);
+            waitingForSongChange = false; isPlaying = false;
+            const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
+            if (btnPlay) btnPlay.textContent = '▶️'; if (btnPlayK) btnPlayK.textContent = isKonkursEmpty ? '-' : '▶️';
+            unlockButtons(); if (navigator.vibrate) navigator.vibrate(20);
         }
     </script>
 </body>
