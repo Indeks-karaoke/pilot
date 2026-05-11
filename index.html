@@ -615,11 +615,23 @@
                             <span class="order-singer" style="color: #444; font-weight: bold;">🎤 ${o.imie || 'Wybór własny'}${nat}</span>
                         `;
 
+                        // Zapamiętanie oryginalnego wyglądu kafelka
+                        const originalHTML = card.innerHTML;
+                        const originalBg = card.style.background;
+
                         card.onclick = () => {
                             sendCmd('play_order', o.tytul);
                             card.style.background = '#1b5e20';
                             card.innerHTML = `<div class="order-title" style="color: #fff; font-weight: 900;">Wysyłanie...</div>`;
-                            setTimeout(() => { toggleTab('orders'); }, 600);
+                            
+                            // Przywrócenie pierwotnego wyglądu kafelka po 800ms
+                            setTimeout(() => { 
+                                card.style.background = originalBg;
+                                card.innerHTML = originalHTML;
+                            }, 800);
+
+                            // Zamknięcie zakładki
+                            setTimeout(() => { toggleTab('orders'); }, 900);
                         };
                         list.appendChild(card);
                     });
