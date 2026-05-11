@@ -114,7 +114,7 @@
             border: 1px solid #444;
             border-radius: 10px;
             padding: 15px 5px;
-            font-size: 24px;
+            font-size: 20px;
             flex: 1;
             margin: 0 4px;
             cursor: pointer;
@@ -132,7 +132,7 @@
         .logout-btn {
             background: #b71c1c;
             border-color: #b71c1c;
-            max-width: 50px;
+            max-width: 45px;
         }
 
         .panel {
@@ -195,10 +195,10 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
             text-align: center;
             padding: 15px;
+            padding-bottom: 10px;
+            box-sizing: border-box;
             overflow: hidden;
             transition: all 0.3s ease;
             touch-action: pan-y;
@@ -209,16 +209,18 @@
             font-size: 4vw;
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 10px;
+            margin-bottom: 5px;
+            flex-shrink: 0;
         }
 
         .big-number {
-            font-size: 35vw;
+            font-size: 30vw;
             font-weight: 900;
             line-height: 1;
             color: #4CAF50;
             margin: 0;
             text-shadow: 0 0 30px rgba(76, 175, 80, 0.4);
+            flex-shrink: 0;
         }
 
         .huge-title {
@@ -229,13 +231,19 @@
             line-height: 1.1;
             word-wrap: break-word;
             width: 100%;
+            /* Zabezpieczenie przed wypychaniem kontrolek */
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         .label-small {
             color: #888;
             font-size: 3.5vw;
             text-transform: uppercase;
-            margin-top: 10px;
+            margin-top: 5px;
             font-weight: bold;
         }
 
@@ -244,21 +252,39 @@
             color: #03dac6;
             margin-top: 2px;
             font-weight: bold;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .queue-item {
             font-size: 4.5vw;
             color: #777;
             margin-top: 2px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        /* KONTROLKI */
+        /* KONTROLKI - układ Flex wymuszający bycie na dole */
+        #nextKaraokeContainer, #nextKonkursContainer {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
         .controls-grid {
             display: grid;
             gap: 10px;
-            margin-top: 20px;
             width: 100%;
             max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: auto !important; /* Przyklejenie do dołu */
+            margin-bottom: 5px;
         }
 
         .grid-3 {
@@ -305,6 +331,32 @@
             background: #222 !important;
             box-shadow: none;
         }
+        
+        /* Mały przycisk Reset UI w rogu */
+        .reset-btn-floating {
+            position: fixed;
+            bottom: 15px;
+            right: 15px;
+            width: 50px;
+            height: 50px;
+            background: rgba(34, 34, 34, 0.9);
+            border: 2px solid #555;
+            color: #ccc;
+            border-radius: 50%;
+            font-size: 20px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+            transition: transform 0.1s, background 0.2s;
+        }
+        
+        .reset-btn-floating:active {
+            transform: scale(0.9);
+            background: #444;
+        }
     </style>
 </head>
 
@@ -327,6 +379,7 @@
         <div id="topBar" class="top-bar">
             <button id="btnTabOrders" class="top-btn" onclick="toggleTab('orders')" title="Zamówienia">📦</button>
             <button id="btnTabList" class="top-btn" onclick="toggleTab('list')" title="Otwarte Karty">📑</button>
+            <button id="btnTabHistory" class="top-btn" onclick="toggleTab('history')" title="Historia">📖</button>
             <button class="top-btn logout-btn" onclick="logoutDJ()" title="Wyloguj się">🚪</button>
         </div>
 
@@ -342,19 +395,28 @@
                 </div>
             </div>
         </div>
+        
+        <!-- NOWA ZAKŁADKA HISTORII -->
+        <div id="tabHistory" class="panel">
+            <div id="historyListRemote" style="text-align: left;">
+                <div style="text-align: center; color: #aaa; padding: 20px;">⏳ Czekam na historię...</div>
+            </div>
+        </div>
 
         <div class="status-display" id="mainStatusScreen">
             <div id="uiMode" class="mode-label">Inicjalizacja...</div>
             <div id="uiMainDisplay" class="big-number">-</div>
             <div id="uiSubDisplay" class="huge-title">Czekam na dane</div>
 
-            <div id="nextKaraokeContainer" style="display: none; width: 100%;">
-                <div class="label-small">Następnie:</div>
-                <div id="uiNext" class="next-song">-</div>
-                <div class="label-small">W kolejce:</div>
-                <div id="uiQueue" style="margin-top:5px; margin-bottom: 15px;"></div>
+            <div id="nextKaraokeContainer" style="display: none;">
+                <div style="flex-shrink: 0;">
+                    <div class="label-small">Następnie:</div>
+                    <div id="uiNext" class="next-song">-</div>
+                    <div class="label-small">W kolejce:</div>
+                    <div id="uiQueue" style="margin-top:5px; margin-bottom: 5px;"></div>
+                </div>
 
-                <div class="controls-grid grid-4" style="margin: 20px auto 0 auto;">
+                <div class="controls-grid grid-4">
                     <button id="btnPrev" class="btn" onclick="sendCmd('prev')">⏮️</button>
                     <button id="btnPlay" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
                     <button id="btnNext" class="btn" onclick="sendCmd('next')">⏭️</button>
@@ -363,22 +425,23 @@
                 </div>
             </div>
 
-            <div id="nextKonkursContainer"
-                style="display: none; margin-top: 20px; border-top: 1px solid #333; width: 100%; padding-top: 10px;">
-                <div class="label-small">Następny w kolejce:</div>
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px;">
-                    <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
-                    <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1;">-</span>
+            <div id="nextKonkursContainer" style="display: none; border-top: 1px solid #333; padding-top: 10px;">
+                <div style="flex-shrink: 0;">
+                    <div class="label-small">Następny w kolejce:</div>
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 5px;">
+                        <span id="uiNextIdx" style="font-size: 10vw; font-weight: 900; color: #fb8c00;">-</span>
+                        <span id="uiNextName" style="font-size: 6vw; color: #aaa; text-align: left; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">-</span>
+                    </div>
                 </div>
 
-                <div class="controls-grid grid-3" style="margin: 30px auto 0 auto;">
+                <div class="controls-grid grid-3">
                     <button id="btnPrevK" class="btn" onclick="sendCmd('prev')">⏮️</button>
                     <button id="btnPlayK" class="btn btn-play" onclick="sendCmd('play')">▶️</button>
                     <button id="btnNextK" class="btn" onclick="sendCmd('next')">⏭️</button>
                 </div>
             </div>
 
-            <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 20px;">
+            <div id="loteriaContainer" style="display: none; width: 100%; margin-top: 10px;">
                 <button class="btn"
                     style="background: #9c27b0; font-weight: bold; width: 100%; padding: 15px; font-size: 18px; margin-bottom: 10px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.4); text-transform: uppercase;"
                     onclick="sendCmd('open_lottery_window')">🖥️ Otwórz / Zamknij Ekran</button>
@@ -391,19 +454,16 @@
                 <div class="label-small" style="margin-top: 25px; text-align: center; color: #bbb;">🏆 Ostatni
                     Zwycięzcy:</div>
                 <ul id="winnersListRemote"
-                    style="list-style: none; padding: 0; margin-top: 10px; max-height: 35dvh; overflow-y: auto; text-align: left;">
+                    style="list-style: none; padding: 0; margin-top: 10px; max-height: 25dvh; overflow-y: auto; text-align: left;">
                     <li style="text-align: center; color: #777; padding: 10px;">Czekam na dane...</li>
                 </ul>
             </div>
         </div>
 
-        <div
-            style="position: fixed; bottom: 15px; left: 15px; right: 15px; display: flex; justify-content: center; z-index: 9999;">
-            <button onclick="forceUnlockUI()" title="Odblokuj przyciski i wymuś zresetowanie blokady"
-                style="width:100%; max-width: 250px; background: rgba(34, 34, 34, 0.85); border: 1px solid #555; color: #ccc; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">
-                🔄 Reset UI
-            </button>
-        </div>
+        <!-- Przeprojektowany przycisk w dolnym rogu ekranu -->
+        <button class="reset-btn-floating" onclick="forceUnlockUI()" title="Wymuś zresetowanie blokady UI">
+            🔄
+        </button>
     </div>
 
     <script>
@@ -472,7 +532,7 @@
         }
 
         let lastCmdTs = 0; let unlockTimeout = null; let isPlaying = false; let waitingForSongChange = false;
-        let lastSongName = ""; let isKonkursEmpty = false; let currentModeInternal = "karaoke";
+        let lastSongName = ""; let isEmptyTitle = true; let currentModeInternal = "karaoke";
 
         let touchStartX = 0; let touchEndX = 0;
 
@@ -502,7 +562,7 @@
         }
 
         function toggleTab(tabName) {
-            const tabs = ['orders', 'list'];
+            const tabs = ['orders', 'list', 'history'];
             tabs.forEach(t => {
                 const el = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
                 const btn = document.getElementById('btnTab' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -566,6 +626,32 @@
                     if (orderCount === 0) list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">📭 Brak zamówień z ostatnich 8 godzin.</div>';
                 }
             });
+            
+            // Nasłuchiwanie Historii (Ostatnie 24H)
+            const cutoff = Date.now() - (24 * 60 * 60 * 1000);
+            db.ref('historia').orderByChild('timestamp').startAt(cutoff).on('value', snap => {
+                const data = [];
+                snap.forEach(child => { data.push(child.val()); });
+                data.reverse(); // od najnowszych
+                const list = document.getElementById('historyListRemote');
+                if (list) {
+                    list.innerHTML = '';
+                    if(data.length === 0) {
+                        list.innerHTML = '<div style="text-align: center; color: #aaa; padding: 20px;">Brak wpisów z ostatnich 24h.</div>';
+                        return;
+                    }
+                    data.forEach(item => {
+                        list.innerHTML += `
+                        <div style="background: #2c2c2c; margin-bottom: 6px; padding: 12px; border-radius: 8px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="font-size: 11px; color: #888; font-weight: bold;">${item.time}</span>
+                            </div>
+                            <div style="font-weight: bold; font-size: 14px; color: #fff; margin-bottom: 4px;">${item.title}</div>
+                            <div style="font-size: 12px; color: #aaa;">🎤 ${item.singers || 'Wybór własny'}</div>
+                        </div>`;
+                    });
+                }
+            });
 
             // Odbiór statusu od DJ'a
             db.ref('remote_status').on('value', (snapshot) => {
@@ -575,8 +661,9 @@
                 if (data.mode) currentModeInternal = data.mode;
                 renderOpenTabsList(data.openTabs || []);
 
-                const newTitle = data.currentName || "Brak utworu";
-                isKonkursEmpty = (data.mode === 'konkurs' && (newTitle === "Brak aktywnej karty" || newTitle === "Brak utworu" || newTitle === "-"));
+                const newTitle = data.currentName || "-";
+                // Definicja "pustej" karty - weryfikujemy w obu trybach
+                isEmptyTitle = (newTitle === "-" || newTitle === "Brak utworu" || newTitle === "Brak aktywnej karty");
 
                 if (waitingForSongChange) {
                     if (newTitle !== lastSongName) { waitingForSongChange = false; unlockButtons(); }
@@ -588,7 +675,7 @@
 
                 if (data.mode === 'karaoke') {
                     uiMain.style.display = 'none'; uiSub.textContent = newTitle; uiSub.style.fontSize = '12vw';
-                    nextKaraokeContainer.style.display = 'block'; nextKonkursContainer.style.display = 'none'; loteriaContainer.style.display = 'none';
+                    nextKaraokeContainer.style.display = 'flex'; nextKonkursContainer.style.display = 'none'; loteriaContainer.style.display = 'none';
                     uiNext.textContent = data.nextName || "-";
                     uiQueue.innerHTML = '';
                     if (data.queueList) {
@@ -600,7 +687,7 @@
                 else if (data.mode === 'konkurs') {
                     uiMain.style.display = 'block'; uiMain.textContent = data.konkursIndex || "1";
                     uiSub.textContent = newTitle; uiSub.style.fontSize = '8vw';
-                    nextKaraokeContainer.style.display = 'none'; nextKonkursContainer.style.display = 'block'; loteriaContainer.style.display = 'none';
+                    nextKaraokeContainer.style.display = 'none'; nextKonkursContainer.style.display = 'flex'; loteriaContainer.style.display = 'none';
                     document.getElementById('uiNextIdx').textContent = data.nextKonkursIndex || "-";
                     document.getElementById('uiNextName').textContent = data.nextName || "-";
                 }
@@ -649,19 +736,19 @@
             const user = auth.currentUser;
             if (!user) { location.reload(); return; }
 
-            if (action === 'play' && isKonkursEmpty) return;
+            if (action === 'play' && isEmptyTitle) return;
 
             if (action === 'play') {
                 isPlaying = !isPlaying;
                 const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
-                if (btnPlay) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
-                if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
+                if (btnPlay && !isEmptyTitle) btnPlay.textContent = isPlaying ? '⏸️' : '▶️';
+                if (btnPlayK && !isEmptyTitle) btnPlayK.textContent = isPlaying ? '⏸️' : '▶️';
             }
             else if (action === 'close' || action === 'prev' || action === 'next' || action === 'play_order') {
                 isPlaying = false;
                 const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
                 if (btnPlay) btnPlay.textContent = '▶️';
-                if (btnPlayK && !isKonkursEmpty) btnPlayK.textContent = '▶️';
+                if (btnPlayK) btnPlayK.textContent = '▶️';
             }
 
             const buttonsIds = ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'];
@@ -690,11 +777,17 @@
             ['btnPrev', 'btnPlay', 'btnNext', 'btnClose', 'btnPrevK', 'btnPlayK', 'btnNextK'].forEach(id => {
                 let btn = document.getElementById(id);
                 if (btn) {
-                    if (id === 'btnPlayK' && isKonkursEmpty) { btn.disabled = true; btn.textContent = '-'; btn.classList.remove('pressed'); }
+                    if ((id === 'btnPlay' || id === 'btnPlayK') && isEmptyTitle) {
+                        btn.disabled = true;
+                        btn.textContent = '-';
+                        btn.classList.remove('pressed');
+                    }
                     else if (id.includes('Play') || id.includes('Close')) {
                         btn.disabled = false; btn.classList.remove('pressed');
                         if (id === 'btnPlay' || id === 'btnPlayK') { btn.textContent = isPlaying ? '⏸️' : '▶️'; }
-                    } else { btn.disabled = isPlaying; btn.classList.remove('pressed'); }
+                    } else { 
+                        btn.disabled = isPlaying; btn.classList.remove('pressed'); 
+                    }
                 }
             });
         }
@@ -702,7 +795,8 @@
         function forceUnlockUI() {
             waitingForSongChange = false; isPlaying = false;
             const btnPlay = document.getElementById('btnPlay'); const btnPlayK = document.getElementById('btnPlayK');
-            if (btnPlay) btnPlay.textContent = '▶️'; if (btnPlayK) btnPlayK.textContent = isKonkursEmpty ? '-' : '▶️';
+            if (btnPlay) btnPlay.textContent = isEmptyTitle ? '-' : '▶️'; 
+            if (btnPlayK) btnPlayK.textContent = isEmptyTitle ? '-' : '▶️';
             unlockButtons(); if (navigator.vibrate) navigator.vibrate(20);
         }
     </script>
